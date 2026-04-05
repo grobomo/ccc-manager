@@ -166,11 +166,11 @@ dispatcher:
   rmSync(TMP, { recursive: true });
 
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-  process.exit(failed > 0 ? 1 : 0);
+  setTimeout(() => process.exit(failed > 0 ? 1 : 0), 100);
 }
 
 main().catch(err => {
   console.error('Test error:', err);
   if (existsSync(TMP)) rmSync(TMP, { recursive: true });
-  process.exit(1);
+  setTimeout(() => process.exit(1), 100);
 });

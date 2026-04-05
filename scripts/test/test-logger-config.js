@@ -284,4 +284,4 @@ test('No args prints usage and exits 1', () => {
 if (existsSync(TMP)) rmSync(TMP, { recursive: true });
 
 console.log(`\n${passed + failed} tests: ${passed} passed, ${failed} failed`);
-if (failed > 0) process.exit(1);
+setTimeout(() => process.exit(failed > 0 ? 1 : 0), 100);
