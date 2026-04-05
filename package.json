@@ -1,6 +1,6 @@
 {
   "name": "ccc-manager",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Universal CCC fleet manager — monitors health, accepts input, dispatches fixes via SHTD pipeline",
   "type": "module",
   "main": "src/index.js",
