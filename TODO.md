@@ -1,16 +1,18 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 16)
+## Session Handoff (2026-04-05, session 17)
 
 **What was done this session:**
-- Synced state: verified T100-T106 all merged (PRs #45-#48)
-- Updated v1.8.0 release notes with T105 (execFileSync) and T106 (container security)
-- Cleaned up stale local branches
-- Full code review pass — all execSync calls verified appropriate (monitors/workers run user-configured commands)
-- Updated CLAUDE.md test count (359)
+- T107: Healthcheck script — ops probe tool (PR #49)
+- T108: PVC for state persistence (PR #50)
+- T109-T111: Test reliability — healthPort ??, libuv drain, queue cleanup (PR #51)
+- T112: NetworkPolicy — K8s traffic restriction (PR #52)
+- T113-T116: Libuv drain fix for all test files + suite failure counting (PRs #53-#55)
+- T117: Version bump to v1.9.0 + GitHub release (PR #56)
+- Cleaned up stale branches and stashes
 
-**Current state:** v1.8.0 on main. 17 components, 359 tests across 15 suites, 48 PRs merged.
-**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
+**Current state:** v1.9.0 on main. 17 components, 359 tests across 15 suites (clean output), 56 PRs merged.
+**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
