@@ -19,7 +19,9 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "node scripts/test/run-all.js",
-    "demo": "node scripts/demo.js"
+    "demo": "node scripts/demo.js",
+    "healthcheck": "node scripts/healthcheck.js",
+    "validate": "node src/index.js --validate"
   },
   "keywords": [
     "ccc",
@@ -45,6 +47,7 @@
     "config/grafana-dashboard.json",
     "k8s/",
     "Dockerfile",
-    "scripts/demo.js"
+    "scripts/demo.js",
+    "scripts/healthcheck.js"
   ]
 }
