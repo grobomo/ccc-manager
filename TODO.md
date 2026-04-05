@@ -208,6 +208,11 @@
 ## Phase 40: Rules → Hook Modules Migration
 - [x] T135: Archive project .claude/rules/, migrate content to hook modules + CLAUDE.md
 
+## Phase 41: Code Review & Polish
+- [x] T136: DRY — MultiManager.start() delegates to Manager.start() instead of duplicating logic
+- [x] T137: README — document multi-instance CLI usage, MultiManager API
+- [x] T138: Version bump to v1.13.0, GitHub release
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

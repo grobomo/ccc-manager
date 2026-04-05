@@ -128,16 +128,41 @@ docker build -t ccc-manager .
 docker run -v ./my-config.yaml:/app/config/project.yaml ccc-manager config/project.yaml
 ```
 
+## Multi-Instance
+
+Run multiple projects from a single process with isolated state and a shared health endpoint:
+
+```bash
+# Two configs, shared health on port 9090
+node src/index.js config/project-a.yaml config/project-b.yaml --health-port 9090
+```
+
+Each instance gets:
+- Isolated state directory (`state/<name>/`)
+- Instance-labeled Prometheus metrics (`ccc_cycles_total{instance="project-a"} 42`)
+- Aggregated `/healthz`, `/readyz`, `/metrics` on the shared port
+
+Programmatic usage:
+
+```js
+import { MultiManager } from 'ccc-manager';
+
+const multi = new MultiManager(['config/a.yaml', 'config/b.yaml'], { healthPort: 9090 });
+await multi.start();
+// multi.stop() to shut down all instances
+```
+
 ## CLI
 
 ```
-ccc-manager <config.yaml> [options]
+ccc-manager <config.yaml> [config2.yaml ...] [options]
 
 Options:
-  --validate        Validate config and exit
+  --validate        Validate config(s) and exit
   --dry-run         Run one cycle, log actions, exit without workers
   --status          Print queue/metrics from state/ directory
   --list-components List available component types
+  --health-port N   Shared health port for multi-instance (default: 8080)
   --version         Print version
   --help            Show help
 ```
@@ -157,7 +182,7 @@ The plugin file should export a class extending the appropriate base class from 
 ## Testing
 
 ```bash
-npm test    # 15 suites, 359 tests
+npm test    # 16 suites, 395 tests
 ```
 
 ## License

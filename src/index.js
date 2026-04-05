@@ -406,30 +406,8 @@ export class MultiManager {
   }
 
   async start() {
-    // Init and start all instances (without individual health servers)
-    await Promise.all(this.managers.map(async m => {
-      await m.init();
-      m.running = true;
-      const interval = m.config.interval || 60000;
-      m.log.info('Starting event loop', { interval });
-      m._watchConfig();
-      await m.runCycle();
-      const timer = setInterval(() => {
-        if (m.running) m.runCycle().catch(err => m.log.error('Cycle error', { error: err.message }));
-      }, interval);
-      m.timers.push(timer);
-      for (const input of m.inputs) {
-        input.listen((task) => {
-          task.source = `input:${input.name}`;
-          task.id = task.id || `${input.name}-${Date.now()}`;
-          if (!m.state.isDuplicate(task.id)) {
-            m.state.enqueue(task);
-            m.log.info('Task received (listen)', { input: input.name, taskId: task.id, summary: task.summary || task.type });
-          }
-        }).catch(err => m.log.error('Listen error', { input: input.name, error: err.message }));
-      }
-    }));
-
+    // Start all instances (skipHealth=true, so each skips its own health server)
+    await Promise.all(this.managers.map(m => m.start()));
     this._startHealth();
     this.log.info('All instances started', { count: this.managers.length, instances: this.managers.map(m => m.instanceName) });
   }
