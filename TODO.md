@@ -59,7 +59,7 @@
 - [x] T052: Wire SHTDDispatcher to actually use workers for task execution
 - [x] T053: Add webhook input (HTTP POST → task queue) for external CI/CD triggers
 - [x] T054: Notification output — post results to Teams/Slack via webhook
-- [ ] T055: Add retry logic — failed tasks retry N times before marking as failed
+- [x] T055: Add retry logic — failed tasks retry N times before marking as failed
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

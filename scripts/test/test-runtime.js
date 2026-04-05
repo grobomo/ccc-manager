@@ -101,8 +101,59 @@ dispatcher:
     passed++; console.log('  PASS: Health server closed after stop');
   }
 
-  // 3. Double-stop is safe
-  console.log('\n3. Double-stop safety...');
+  // 3. Retry logic
+  console.log('\n3. Retry logic...');
+
+  // Clean state for retry test
+  if (existsSync(stateDir)) rmSync(stateDir, { recursive: true });
+
+  const retryPort = healthPort + 50;
+  const retryConfigPath = resolve(TMP, 'retry-test.yaml');
+  writeFileSync(retryConfigPath, `
+name: retry-test
+interval: 60000
+healthPort: ${retryPort}
+maxRetries: 2
+dispatcher:
+  type: shtd
+verifiers:
+  always-fail:
+    type: test-suite
+    command: node -e "process.exit(1)"
+`);
+
+  const retryManager = new Manager(retryConfigPath);
+  await retryManager.start();
+  await new Promise(r => setTimeout(r, 100));
+
+  // Enqueue a task that will always fail verification
+  retryManager.state.enqueue({ id: 'retry-task', summary: 'Will fail verification' });
+  assert(retryManager.state.queue.length === 1, 'Task enqueued for retry test');
+
+  // Process it — should retry twice then finally fail
+  let task = retryManager.state.dequeue();
+  await retryManager._processTask(task);
+  // After first failure, task should be re-queued
+  assert(retryManager.state.queue.some(t => t.id === 'retry-task'), 'Task re-queued after first failure');
+  assert(retryManager.state.queue.find(t => t.id === 'retry-task')._retries === 1, 'Retry count: 1');
+
+  task = retryManager.state.dequeue();
+  await retryManager._processTask(task);
+  assert(retryManager.state.queue.some(t => t.id === 'retry-task'), 'Task re-queued after second failure');
+  assert(retryManager.state.queue.find(t => t.id === 'retry-task')._retries === 2, 'Retry count: 2');
+
+  task = retryManager.state.dequeue();
+  await retryManager._processTask(task);
+  // After max retries, task should be completed as failed
+  assert(!retryManager.state.queue.some(t => t.id === 'retry-task'), 'Task removed from queue after max retries');
+  const failedTask = retryManager.state.history.find(t => t.id === 'retry-task');
+  assert(failedTask !== undefined, 'Failed task in history');
+  assert(failedTask.status === 'failed', `Final status: ${failedTask?.status}`);
+
+  await retryManager.stop();
+
+  // 4. Double-stop is safe
+  console.log('\n4. Double-stop safety...');
   await manager.stop(); // Should not throw
   assert(true, 'Double-stop did not throw');
 
