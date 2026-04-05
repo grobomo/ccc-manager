@@ -5,8 +5,10 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 export class State {
-  constructor(stateDir) {
+  constructor(stateDir, options = {}) {
     this.dir = stateDir;
+    this.dedupWindow = options.dedupWindow ?? 3600000; // Default 1 hour
+    this.maxHistory = options.maxHistory ?? 1000; // Default 1000 entries
     if (!existsSync(this.dir)) mkdirSync(this.dir, { recursive: true });
     this.queue = this._load('queue.json', []);
     this.history = this._load('history.json', []);
@@ -52,6 +54,10 @@ export class State {
     task.completedAt = Date.now();
     task.result = result;
     this.history.push(task);
+    // Rotate history if over limit
+    if (this.history.length > this.maxHistory) {
+      this.history = this.history.slice(-this.maxHistory);
+    }
     if (result.passed) this.metrics.fixes++;
     else this.metrics.failures++;
     this._save('queue.json', this.queue);
@@ -63,9 +69,9 @@ export class State {
   isDuplicate(id) {
     if (!id) return false;
     if (this.queue.some(t => t.id === id)) return true;
-    // Check recent history (last hour) to avoid re-processing
-    const oneHourAgo = Date.now() - 3600000;
-    return this.history.some(t => t.id === id && t.completedAt > oneHourAgo);
+    // Check recent history within dedup window to avoid re-processing
+    const cutoff = Date.now() - this.dedupWindow;
+    return this.history.some(t => t.id === id && t.completedAt > cutoff);
   }
 
   recordCycle() {

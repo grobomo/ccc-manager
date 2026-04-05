@@ -7,6 +7,7 @@ import { LogMonitor } from './monitors/log.js';
 import { GitHubInput } from './inputs/github.js';
 import { WebhookInput } from './inputs/webhook.js';
 import { SHTDDispatcher } from './dispatcher/shtd.js';
+import { ClaudeDispatcher } from './dispatcher/claude.js';
 import { TestSuiteVerifier } from './verifiers/test-suite.js';
 import { LocalWorker } from './workers/local.js';
 import { K8sWorker } from './workers/k8s.js';
@@ -21,6 +22,7 @@ export function registerBuiltins(registry) {
   registry.registerMonitor('process', ProcessMonitor);
   registry.registerMonitor('log', LogMonitor);
   registry.registerDispatcher('shtd', SHTDDispatcher);
+  registry.registerDispatcher('claude', ClaudeDispatcher);
   registry.registerVerifier('test-suite', TestSuiteVerifier);
   registry.registerWorker('local', LocalWorker);
   registry.registerWorker('k8s', K8sWorker);
