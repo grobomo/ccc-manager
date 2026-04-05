@@ -1,17 +1,16 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 12)
+## Session Handoff (2026-04-05, session 14)
 
 **What was done this session:**
-- T087: EC2Worker + K8sWorker — execFileSync with array args (no local shell) (PR #37)
-- T088: EC2Worker SSM — correct JSON --parameters format for AWS CLI (PR #37)
-- T089: FileNotifier — sanitize task.id to prevent path traversal (PR #37)
-- T090: Grafana dashboard JSON — 10 panels for all Prometheus metrics (PR #38)
-- T091: Config docs — all component configs in example.yaml (PR #38)
-- T092: Version bump to v1.6.0 (PR #39)
-- Full code review of all 23 source files — no remaining issues
+- T095: CLI flags — --help, --version, --validate (PR #40)
+- T096: CLI --list-components (PR #41)
+- T097: Version bump to v1.7.0 + GitHub release (PR #42)
+- T098: K8s deployment manifests — Deployment, ConfigMap, Service, ServiceMonitor (PR #43)
+- T099: Kustomization.yaml + package.json files update (PR #44)
+- Full code review of all 23 source files — no issues found
 
-**Current state:** v1.7.0 on main. 17 components, 351 tests across 15 suites, 43 PRs merged. GitHub release published.
+**Current state:** v1.7.0 on main. 17 components, 351 tests across 15 suites, 45 PRs merged. GitHub releases for v1.6.0 and v1.7.0.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
