@@ -3,19 +3,22 @@
 ## Session Handoff (2026-04-05, session 20)
 
 **What was done this session:**
-- T135: Migrate rules to hook modules — archived .claude/rules/, content moved to CLAUDE.md
-- Global rules migration: 16 global rules archived, content merged into ~/.claude/CLAUDE.md
-- New hook modules: no-passive-rules.js (blocks all rules/ writes), blueprint-no-sleep.js, git-rebase-safety.js (reset --soft guard)
-- branch-pr-gate.js updated: removed /rules/ from Edit/Write allowlist
+- T128-T129: Fix secret-scan self-match, v1.11.0 (PR #59 — already merged from session 18)
+- T130-T134: Multi-instance support, v1.12.0 (PR #60 — already merged from session 19)
+- T135: Archive .claude/rules/, migrate to hook modules + CLAUDE.md (PR #61)
+- T136-T138: DRY MultiManager.start(), README multi-instance docs, v1.13.0 (PR #62)
+- Global rules migration: 16 global rules archived → ~/.claude/CLAUDE.md
+- New hook modules: no-passive-rules.js (blocks ALL rules/ writes), blueprint-no-sleep.js, git-rebase-safety.js (reset --soft guard)
+- branch-pr-gate.js: removed /rules/ from Edit/Write allowlist
 
-**Current state:** v1.12.0 on main. 17 components, 395 tests across 16 suites, 60 PRs merged.
+**Current state:** v1.13.0 on main. 17 components, 395 tests across 16 suites, 62 PRs merged.
 **All CI green:** Tests (Node 18/20/22) + Secret Scan pass on GitHub Actions.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Project-scoped rules migration: ~65 rule files remain across other projects (recording-analyzer, claude-portable, hackathon26, lab-worker, rone-teams-poller, MCP, ep-incident-response)
+- Project-scoped rules migration: ~65 rule files remain across other projects (each project session should migrate its own rules)
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
