@@ -46,27 +46,73 @@ export class Dispatcher {
   }
 
   // Execute plan tasks via workers. Returns aggregated result.
-  // Default implementation iterates plan.tasks and calls worker.execute().
-  // Override only if custom dispatch logic is needed.
+  // Supports parallel execution: tasks without dependsOn run concurrently.
+  // Tasks with dependsOn wait for their dependencies to complete first.
+  // Each task can specify a worker via task.worker (falls back to config default).
   async dispatch(plan, config, workers = {}) {
-    const results = [];
-    const workerName = config.dispatcher?.worker || 'default';
-    const worker = workers[workerName] || Object.values(workers)[0];
+    const defaultWorkerName = config.dispatcher?.worker || 'default';
+    const defaultWorker = workers[defaultWorkerName] || Object.values(workers)[0];
+    const parallel = config.dispatcher?.parallel !== false; // default: true
 
-    for (const task of plan.tasks) {
-      if (worker) {
-        try {
-          const result = await worker.execute(task);
-          results.push({ taskId: task.id, ...result });
-        } catch (err) {
-          results.push({ taskId: task.id, success: false, error: err.message });
-        }
-      } else {
-        results.push({ taskId: task.id, success: true, output: 'No worker configured', skipped: true });
+    const resultMap = new Map(); // taskId → result
+    const completed = new Set();
+
+    async function executeTask(task) {
+      const worker = (task.worker && workers[task.worker]) || defaultWorker;
+      if (!worker) {
+        return { taskId: task.id, success: true, output: 'No worker configured', skipped: true };
+      }
+      try {
+        const result = await worker.execute(task);
+        return { taskId: task.id, ...result };
+      } catch (err) {
+        return { taskId: task.id, success: false, error: err.message };
       }
     }
 
-    const allSuccess = results.every(r => r.success);
+    // Group tasks: those with dependencies and those without
+    const pending = [...plan.tasks];
+
+    while (pending.length > 0) {
+      // Find tasks ready to run (no unmet dependencies)
+      const ready = pending.filter(t => {
+        const deps = t.dependsOn || [];
+        return deps.every(d => completed.has(d));
+      });
+
+      if (ready.length === 0 && pending.length > 0) {
+        // Circular dependency or missing dependency — run remaining sequentially
+        for (const t of pending) {
+          const result = await executeTask(t);
+          resultMap.set(t.id, result);
+          completed.add(t.id);
+        }
+        break;
+      }
+
+      // Remove ready tasks from pending
+      for (const t of ready) {
+        pending.splice(pending.indexOf(t), 1);
+      }
+
+      // Execute ready tasks (parallel or sequential)
+      if (parallel && ready.length > 1) {
+        const results = await Promise.all(ready.map(t => executeTask(t)));
+        for (let i = 0; i < ready.length; i++) {
+          resultMap.set(ready[i].id, results[i]);
+          completed.add(ready[i].id);
+        }
+      } else {
+        for (const t of ready) {
+          const result = await executeTask(t);
+          resultMap.set(t.id, result);
+          completed.add(t.id);
+        }
+      }
+    }
+
+    const results = plan.tasks.map(t => resultMap.get(t.id));
+    const allSuccess = results.every(r => r?.success);
     return {
       planId: plan.spec.id,
       taskCount: plan.tasks.length,

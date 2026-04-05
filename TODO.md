@@ -18,11 +18,11 @@
 EP incident response project needs a reusable dispatcher/distribution framework for parallel V1 analysis.
 Currently blocked because distribution logic doesn't exist as a pluggable component.
 
-- [ ] T143 Create a reusable task sharding strategy: given a high-level task + worker count, produce discrete work units. EP needs: "analyze incident" → N units split by (time range × data source × analysis type)
-- [ ] T144 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
-- [ ] T145 Add SQS-backed dispatcher mode: EC2Worker already exists, but need dispatcher that queues to SQS instead of running locally. EP fleet uses SQS for task/result queues.
-- [ ] T146 Add result aggregation: collect results from N workers, merge into unified report. EP needs hierarchical aggregation (workers → T3 managers → dispatcher → final report)
-- [ ] T147 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
+- [x] T148 Enhance T143 sharding for EP: Sharder class with cartesian/chunk/round-robin, EP test (3×3×3=27 units)
+- [ ] T149 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
+- [ ] T150 Add SQS-backed dispatcher mode: EC2Worker exists, but need dispatcher that queues to SQS instead of locally. EP fleet uses SQS for task/result queues.
+- [x] T151 Add result aggregation: aggregateResults() with custom merge function, status rollup
+- [ ] T152 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -225,6 +225,11 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T140: RONE values overlay — values-rone.yaml for hackathon-teams-poller deployment
 - [x] T141: Helm chart test — validate templates render correctly with default and RONE values
 - [x] T142: Version bump to v1.14.0, update package.json files array, GitHub release
+
+## Phase 43: Runtime Improvements
+- [x] T143: Task sharding — dispatcher splits plans into parallel sub-tasks across multiple workers
+- [x] T144: Event-driven bridge — fs.watch for instant task pickup instead of polling interval
+- [x] T145: Version bump to v1.15.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
