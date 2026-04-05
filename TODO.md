@@ -3,18 +3,21 @@
 ## Session Handoff (2026-04-05, session 18)
 
 **What was done this session:**
-- T118-T120: Package scripts, suite names, CHANGELOG (PR #57)
-- T121-T125: Dockerfile cleanup, CI workflow, README, Grafana in image (PR #58)
-- T126: Cleaned up 14 stale remote branches
-- T127: GitHub input added to rone-teams-poller.yaml
+- T123: GitHub Actions test CI — Node 18/20/22 matrix (PR #58)
+- T124: README.md — project overview, quickstart, architecture, component table
+- T125: Dockerfile — add Grafana dashboard to COPY
+- T126: Cleaned up all stale branches (local + remote, 14+ deleted)
+- T127: GitHub input added to rone-teams-poller.yaml for SELF_REPAIR issues
+- T128: Fix secret-scan self-match — PRIVATE KEY grep matched workflow file (PR #59)
+- T129: Version bump to v1.11.0, GitHub release
 
-**Current state:** v1.10.0 on main. 17 components, 359 tests across 15 suites, 58 PRs merged.
+**Current state:** v1.11.0 on main. 17 components, 359 tests across 15 suites, 59 PRs merged.
+**All CI green:** Tests (Node 18/20/22) + Secret Scan pass on GitHub Actions.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
-**Still TODO:** Create GitHub release for v1.10.0
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
-- Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge input
+- Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
 - Consider: multi-instance support (one manager per project, shared Prometheus endpoint)
 
 ## Completed Phases (1-8)
