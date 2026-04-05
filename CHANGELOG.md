@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.11.0 (2026-04-05)
+- GitHub Actions test CI (Node 18/20/22 matrix)
+- README.md with quickstart, architecture, component table
+- Grafana dashboard included in Docker image
+- GitHub issues input added to rone-teams-poller config
+- Fix secret-scan self-match (PRIVATE KEY grep matched its own workflow file)
+- Cleaned up 14+ stale remote branches
+
 ## v1.10.0 (2026-04-05)
 - Dockerfile: only include example config, not project-specific files
 - `.dockerignore` for leaner images
