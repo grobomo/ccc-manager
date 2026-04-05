@@ -5,22 +5,16 @@
 **What was done this session:**
 - T100: Fix dedup bypass in listen callback — webhook tasks skipped isDuplicate
 - T101-T103: CLI --dry-run, --status flags + --status no-config fix (PR #45)
-- T104: Version bump to v1.8.0 + GitHub release
+- T104: Version bump to v1.8.0 + GitHub release (PR #46)
+- T105: GitHubInput execFileSync — eliminate shell injection (PR #47)
 
-**Current state:** v1.8.0 on main. 17 components, 358 tests across 15 suites, 47 PRs merged.
+**Current state:** v1.8.0 on main. 17 components, 359 tests across 15 suites, 47 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge input
 - Consider: multi-instance support (one manager per project, shared Prometheus endpoint)
-**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
-
-**Next priorities (zoom out):**
-- SIGHUP config reload — allow `kill -HUP` to trigger reload (K8s ConfigMap update pattern)
-- Uptime metric for Prometheus (ccc_uptime_seconds gauge)
-- Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
-- Dashboard config — Grafana JSON model for Prometheus metrics
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
