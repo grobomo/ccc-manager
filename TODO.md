@@ -61,13 +61,18 @@
 - [x] T026: Initial commit and push to grobomo/ccc-manager
 - [x] Gotcha: gh auth switch broken with EMU — use GH_TOKEN=$(gh auth token -u grobomo) instead
 
-## Phase 6: Next — Real-World Integration
-- [ ] T027: K8sWorker — dispatch tasks via kubectl exec or K8s Jobs
-- [ ] T028: EC2Worker — dispatch tasks via SSH/SSM to EC2 instances
-- [ ] T029: LogMonitor — watch log files/streams for error patterns
-- [ ] T030: GitHubInput — poll GitHub issues labeled 'self-repair'
-- [ ] T031: Wire rone-teams-poller SELF_REPAIR → ccc-manager bridge directory
-- [ ] T032: Dockerize manager for deployment as K8s sidecar or standalone pod
+## Phase 6: Environment Workers (COMPLETE)
+- [x] T027: K8sWorker — kubectl exec with namespace/pod/container
+- [x] T028: EC2Worker — SSH/SSM with local mode for testing
+- [x] T029: LogMonitor — file tail with regex pattern matching + offset tracking
+- [x] T030: GitHubInput — poll issues via gh CLI with dedup
+- [x] T031: Registration in builtins.js
+- [x] T032: Checkpoint: 24/24 tests pass (scripts/test/test-workers.js), 95 total
+
+## Phase 7: Deployment & Integration
+- [ ] T033: Dockerize manager for K8s sidecar or standalone pod
+- [ ] T034: Wire rone-teams-poller SELF_REPAIR → ccc-manager bridge directory
+- [ ] T035: Add npm test script that runs all 5 test suites
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
