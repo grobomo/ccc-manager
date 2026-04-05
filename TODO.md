@@ -10,7 +10,7 @@
 - T084: ClaudeDispatcher shell injection fix — execFileSync with array args (PR #35)
 - 327 tests across 15 suites, 0 failures, 36 PRs merged
 
-**Current state:** v1.5.0 on main. 17 components, 327 tests across 15 suites, 36 PRs merged.
+**Current state:** v1.5.0 on main. 17 components, 343 tests across 15 suites, 38 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
@@ -125,6 +125,11 @@
 ## Phase 23: Production Readiness
 - [x] T085: SIGHUP config reload — K8s ConfigMap update pattern
 - [x] T086: Uptime + last_reload Prometheus gauges
+
+## Phase 24: Worker Security Hardening
+- [x] T087: EC2Worker + K8sWorker — execFileSync with array args (no local shell interpretation)
+- [x] T088: EC2Worker SSM — fix --parameters format for AWS CLI
+- [x] T089: FileNotifier — sanitize task.id in filename to prevent path traversal
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

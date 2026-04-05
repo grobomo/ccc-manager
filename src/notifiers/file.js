@@ -17,7 +17,11 @@ export class FileNotifier extends Notifier {
   async notify(task, result) {
     if (!existsSync(this.dir)) mkdirSync(this.dir, { recursive: true });
 
-    const filename = `${this.prefix}-${task.id || Date.now()}.json`;
+    // Sanitize task.id to prevent path traversal (strip ../, /, \, consecutive dots)
+    const safeId = (task.id || String(Date.now()))
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .replace(/\.{2,}/g, '.');
+    const filename = `${this.prefix}-${safeId}.json`;
     const payload = {
       taskId: task.id,
       source: task.source,

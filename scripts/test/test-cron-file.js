@@ -217,6 +217,20 @@ await testAsync('FileNotifier creates dir if missing', async () => {
   assert.equal(files.length, 1);
 });
 
+await testAsync('FileNotifier sanitizes path traversal in task.id', async () => {
+  const outDir = resolve(tmpDir, 'safe-output');
+  const n = new FileNotifier('test', { dir: outDir });
+  const result = await n.notify(
+    { id: '../../../etc/passwd', source: 'test', summary: 'Malicious' },
+    { passed: true, details: 'ok' }
+  );
+  assert.equal(result.sent, true);
+  // File must be inside outDir, not escaped via ../
+  assert.ok(result.path.startsWith(outDir), `File stays in output dir: ${result.path}`);
+  assert.ok(!result.path.includes('..'), 'No .. in path');
+  assert.ok(existsSync(result.path));
+});
+
 // --- Registration ---
 console.log('5. Registration...');
 
