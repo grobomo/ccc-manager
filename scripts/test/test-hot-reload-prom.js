@@ -291,5 +291,5 @@ interval: 5000
 }
 
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-// Explicit exit required — Manager instances leave open handles (file watchers, timers)
-process.exit(failed > 0 ? 1 : 0);
+// Delay exit to let handles drain (avoids libuv assertion crash on Windows)
+setTimeout(() => process.exit(failed > 0 ? 1 : 0), 100);
