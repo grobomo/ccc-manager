@@ -176,6 +176,7 @@
 ## Phase 35: Test Reliability (continued)
 - [x] T113: Fix test-hot-reload-prom exit — delay process.exit for libuv drain on Windows
 - [x] T114: Apply libuv drain fix to remaining test files (dispatch, e2e-bridge, inputs)
+- [x] T115: Fix run-all.js suite failure counting — distinguish libuv crash from test failure
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
