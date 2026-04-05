@@ -95,8 +95,15 @@ export class Manager {
     task._retries = task._retries || 0;
 
     try {
-      this.log.info('Processing task', { taskId: task.id, summary: task.summary, retry: task._retries > 0 ? `${task._retries}/${maxRetries}` : undefined });
+      this.log.info('Processing task', { taskId: task.id, summary: task.summary, retry: task._retries > 0 ? `${task._retries}/${maxRetries}` : undefined, dryRun: this.dryRun || undefined });
       const plan = await this.dispatcher.analyze(task);
+
+      if (this.dryRun) {
+        this.log.info('[dry-run] Would dispatch', { taskId: task.id, tasks: plan.tasks?.length ?? 0 });
+        this.state.complete(task.id, { passed: true, details: 'dry-run: skipped execution' });
+        return;
+      }
+
       const result = await this.dispatcher.dispatch(plan, this.config, this.workers);
 
       let verified = { passed: true, details: 'No verifier configured' };
@@ -387,6 +394,8 @@ Usage: ccc-manager <config.yaml> [options]
 
 Options:
   --validate        Validate config and exit (no start)
+  --dry-run         Init, run one cycle, print results, exit (no workers)
+  --status          Print current queue/metrics from state/ and exit
   --list-components List available component types
   --version         Print version and exit
   --help            Show this help`);
@@ -417,9 +426,30 @@ Options:
     process.exit(0);
   }
 
+  if (flags.has('--status')) {
+    const { existsSync, readFileSync } = await import('node:fs');
+    const stateDir = resolve(ROOT, 'state');
+    const read = (f, fallback) => {
+      const p = resolve(stateDir, f);
+      if (!existsSync(p)) return fallback;
+      try { return JSON.parse(readFileSync(p, 'utf-8')); } catch { return fallback; }
+    };
+    const queue = read('queue.json', []);
+    const metrics = read('metrics.json', {});
+    const history = read('history.json', []);
+    console.log(`Queue: ${queue.length} tasks`);
+    if (queue.length > 0) {
+      for (const t of queue) console.log(`  [${t.status}] ${t.id} — ${t.summary || t.type || '(no summary)'}`);
+    }
+    console.log(`History: ${history.length} entries`);
+    console.log(`Metrics: ${metrics.cycles ?? 0} cycles, ${metrics.issues ?? 0} issues, ${metrics.fixes ?? 0} fixes, ${metrics.failures ?? 0} failures`);
+    if (metrics.lastCycle) console.log(`Last cycle: ${new Date(metrics.lastCycle).toISOString()}`);
+    process.exit(0);
+  }
+
   const configPath = positional[0];
   if (!configPath) {
-    console.error('Usage: ccc-manager <config.yaml> [--validate] [--version] [--help]');
+    console.error('Usage: ccc-manager <config.yaml> [--validate] [--dry-run] [--status] [--list-components] [--version] [--help]');
     process.exit(1);
   }
 
@@ -432,6 +462,21 @@ Options:
       console.error(err.message);
       process.exit(1);
     }
+  }
+
+  if (flags.has('--dry-run')) {
+    const manager = new Manager(resolve(configPath));
+    manager.dryRun = true;
+    await manager.init();
+    console.log('[dry-run] Running one cycle (workers disabled)...');
+    await manager.runCycle();
+    const q = manager.state.queue;
+    const m = manager.state.metrics;
+    console.log(`[dry-run] Cycle complete: ${m.issues} issues, ${q.length} queued, ${m.fixes} fixes, ${m.failures} failures`);
+    if (q.length > 0) {
+      for (const t of q) console.log(`  [${t.status}] ${t.id} — ${t.summary || '(no summary)'}`);
+    }
+    process.exit(0);
   }
 
   const manager = new Manager(resolve(configPath));
