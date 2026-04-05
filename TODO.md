@@ -189,6 +189,13 @@
 - [x] T121: Dockerfile — only copy example.yaml, not project-specific configs
 - [x] T122: Version bump to v1.10.0, GitHub release
 
+## Phase 37: CI, Docs & Cleanup
+- [x] T123: GitHub Actions test CI — run npm test on push/PR
+- [x] T124: README.md — project overview, quickstart, architecture, component table
+- [x] T125: Dockerfile — add Grafana dashboard to COPY
+- [ ] T126: Clean up stale branches (local + remote merged branches)
+- [ ] T127: Add GitHub input to rone-teams-poller.yaml for SELF_REPAIR issues
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
