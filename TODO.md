@@ -173,6 +173,9 @@
 ## Phase 34: K8s Network Security
 - [x] T112: NetworkPolicy — restrict ingress to health/metrics port, controlled egress (DNS, HTTPS, K8s API)
 
+## Phase 35: Test Reliability (continued)
+- [x] T113: Fix test-hot-reload-prom exit — delay process.exit for libuv drain on Windows
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
