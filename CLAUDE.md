@@ -32,7 +32,31 @@ node src/index.js config/example.yaml
 ## Testing
 
 ```bash
-node scripts/test/test-scaffold.js
+npm test                          # All 5 suites (95 tests)
+node scripts/test/run-all.js      # Same thing
+node scripts/test/test-scaffold.js  # Core framework only
+```
+
+## Built-in Components
+
+| Type | Name | Description |
+|------|------|-------------|
+| Monitor | `process` | Run command, report if exit != 0 |
+| Monitor | `log` | Tail file, match regex patterns |
+| Input | `bridge` | Poll directory for .json task files |
+| Input | `alert` | In-memory queue (monitor→dispatcher) |
+| Input | `github` | Poll GitHub issues by label via gh CLI |
+| Dispatcher | `shtd` | Analyze issue → SHTD spec/tasks |
+| Verifier | `test-suite` | Run command, pass if exit 0 |
+| Worker | `local` | Execute via child_process |
+| Worker | `k8s` | Execute via kubectl exec |
+| Worker | `ec2` | Execute via SSH, SSM, or local |
+
+## Docker
+
+```bash
+docker build -t ccc-manager .
+docker run ccc-manager config/rone-teams-poller.yaml
 ```
 
 ## Key Design Decisions
@@ -42,3 +66,4 @@ node scripts/test/test-scaffold.js
 - Registry pattern for pluggable components
 - State persists to disk (gitignored) for crash recovery
 - Environment-agnostic: same code for K8s, EC2, or local
+- Dedup prevents same issue from being re-enqueued within 1 hour
