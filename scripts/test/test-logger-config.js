@@ -7,7 +7,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { createLogger } from '../../src/logger.js';
-import { validateConfig, loadConfig } from '../../src/config.js';
+import { validateConfig, loadConfig, interpolateEnv } from '../../src/config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '../..');
@@ -346,6 +346,69 @@ test('No args prints usage and exits 1', () => {
     assert.ok(err.status === 1);
     assert.ok(err.stderr.includes('Usage:'));
   }
+});
+
+// --- Env var interpolation ---
+console.log('5. Env var interpolation...');
+
+test('interpolateEnv resolves ${VAR} from process.env', () => {
+  process.env._CCC_TEST_VAR = 'hello';
+  assert.equal(interpolateEnv('${_CCC_TEST_VAR}'), 'hello');
+  delete process.env._CCC_TEST_VAR;
+});
+
+test('interpolateEnv resolves ${VAR:-default} with env set', () => {
+  process.env._CCC_TEST_VAR2 = 'real';
+  assert.equal(interpolateEnv('${_CCC_TEST_VAR2:-fallback}'), 'real');
+  delete process.env._CCC_TEST_VAR2;
+});
+
+test('interpolateEnv uses default when env var not set', () => {
+  delete process.env._CCC_TEST_MISSING;
+  assert.equal(interpolateEnv('${_CCC_TEST_MISSING:-my-default}'), 'my-default');
+});
+
+test('interpolateEnv leaves ${VAR} unresolved when not set and no default', () => {
+  delete process.env._CCC_TEST_NOPE;
+  assert.equal(interpolateEnv('${_CCC_TEST_NOPE}'), '${_CCC_TEST_NOPE}');
+});
+
+test('interpolateEnv handles multiple vars in one string', () => {
+  process.env._CCC_A = 'foo';
+  process.env._CCC_B = 'bar';
+  assert.equal(interpolateEnv('${_CCC_A}/${_CCC_B}'), 'foo/bar');
+  delete process.env._CCC_A;
+  delete process.env._CCC_B;
+});
+
+test('interpolateEnv recurses into nested objects', () => {
+  process.env._CCC_DEEP = 'deep-val';
+  const result = interpolateEnv({ a: { b: { c: '${_CCC_DEEP}' } } });
+  assert.equal(result.a.b.c, 'deep-val');
+  delete process.env._CCC_DEEP;
+});
+
+test('interpolateEnv recurses into arrays', () => {
+  process.env._CCC_ARR = 'item';
+  const result = interpolateEnv(['${_CCC_ARR}', 'plain']);
+  assert.deepEqual(result, ['item', 'plain']);
+  delete process.env._CCC_ARR;
+});
+
+test('interpolateEnv passes through non-strings unchanged', () => {
+  assert.equal(interpolateEnv(42), 42);
+  assert.equal(interpolateEnv(true), true);
+  assert.equal(interpolateEnv(null), null);
+});
+
+test('loadConfig resolves env vars in YAML', () => {
+  process.env._CCC_TEST_NAME = 'env-project';
+  const envPath = resolve(TMP, 'env.yaml');
+  if (!existsSync(TMP)) mkdirSync(TMP, { recursive: true });
+  writeFileSync(envPath, 'name: "${_CCC_TEST_NAME}"\ninterval: 5000\n');
+  const config = loadConfig(envPath);
+  assert.equal(config.name, 'env-project');
+  delete process.env._CCC_TEST_NAME;
 });
 
 // Cleanup

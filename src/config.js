@@ -170,12 +170,34 @@ export function validateConfig(config) {
   return errors;
 }
 
+// Resolve ${VAR} and ${VAR:-default} in string values from process.env
+export function interpolateEnv(obj) {
+  if (typeof obj === 'string') {
+    return obj.replace(/\$\{([^}]+)\}/g, (match, expr) => {
+      const sepIdx = expr.indexOf(':-');
+      if (sepIdx !== -1) {
+        const varName = expr.slice(0, sepIdx);
+        const fallback = expr.slice(sepIdx + 2);
+        return process.env[varName] ?? fallback;
+      }
+      return process.env[expr] ?? match; // leave unresolved if env var not set
+    });
+  }
+  if (Array.isArray(obj)) return obj.map(v => interpolateEnv(v));
+  if (obj && typeof obj === 'object') {
+    const result = {};
+    for (const [k, v] of Object.entries(obj)) result[k] = interpolateEnv(v);
+    return result;
+  }
+  return obj;
+}
+
 export function loadConfig(configPath) {
   if (!existsSync(configPath)) {
     throw new Error(`Config not found: ${configPath}`);
   }
   const text = readFileSync(configPath, 'utf-8');
-  const config = parseYaml(text);
+  const config = interpolateEnv(parseYaml(text));
 
   const errors = validateConfig(config);
   if (errors.length > 0) {
