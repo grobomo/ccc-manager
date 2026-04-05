@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.18.0 (2026-04-05)
+- Logger JSON mode: filter undefined values from data before spread (consistency with text mode)
+- Tests: exec-helper unit tests (18), logger undefined filtering tests (JSON + text)
+- 21 test suites, 581 tests total
+
 ## v1.17.0 (2026-04-05)
 - Code review: logger filters undefined values from text output (no more `key=undefined`)
 - Code review: SQSInput.listen() try/catch prevents silent poll loop death on callback error

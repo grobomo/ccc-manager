@@ -3,10 +3,11 @@
 ## Session Handoff (2026-04-05, session 25)
 
 **What was done this session:**
-- T155-T157: Code review pass across all 26 source files, 2 fixes + v1.17.0
+- T155-T157: Code review pass across all 26 source files, 2 fixes + DRY exec-helper, v1.17.0
+- T158-T160: Logger JSON undefined fix, 7 new tests, v1.18.0
 
-**Current state:** v1.17.0 on main. 20 components, 20 suites, 556 tests. All CI green.
-**All tasks through T157 complete.**
+**Current state:** v1.18.0 on main. 20 components, 20 suites, 562+ tests. All CI green.
+**All tasks through T160 complete.**
 
 **Next priorities:**
 - Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
@@ -242,6 +243,11 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T155: Logger — filter undefined values from text output
 - [x] T156: SQSInput.listen() — try/catch around callback in doPoll loop
 - [x] T157: Version bump to v1.17.0, CHANGELOG update
+
+## Phase 46: Test Coverage & Quality
+- [x] T158: Tests for logger undefined filtering and exec-helper (7 new tests)
+- [x] T159: Logger JSON mode — filter undefined values from data before spread
+- [x] T160: Version bump to v1.18.0, CHANGELOG update
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

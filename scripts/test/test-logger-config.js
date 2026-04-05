@@ -112,6 +112,74 @@ test('Empty data produces no extra output', () => {
   assert.equal(chunks[0].trim(), '[test-empty] clean');
 });
 
+test('JSON mode filters undefined values from data', () => {
+  const log = createLogger('test-json-undef', { json: true });
+  const chunks = [];
+  const origWrite = process.stderr.write;
+  process.stderr.write = (chunk) => { chunks.push(chunk); return true; };
+  log.info('task', { id: '123', retry: undefined, dryRun: undefined });
+  process.stderr.write = origWrite;
+
+  const parsed = JSON.parse(chunks[0]);
+  assert.equal(parsed.id, '123');
+  assert.ok(!('retry' in parsed), 'No retry key in JSON');
+  assert.ok(!('dryRun' in parsed), 'No dryRun key in JSON');
+});
+
+test('Text mode filters undefined values from data', () => {
+  const log = createLogger('test-undef', { json: false });
+  const chunks = [];
+  const origWrite = process.stdout.write;
+  process.stdout.write = (chunk) => { chunks.push(chunk); return true; };
+  log.info('task', { id: '123', retry: undefined, dryRun: undefined });
+  process.stdout.write = origWrite;
+
+  assert.ok(chunks[0].includes('id=123'), 'Includes defined value');
+  assert.ok(!chunks[0].includes('undefined'), 'No undefined in output');
+  assert.ok(!chunks[0].includes('retry='), 'No retry key');
+  assert.ok(!chunks[0].includes('dryRun='), 'No dryRun key');
+});
+
+test('Text mode: all-undefined data produces no extra', () => {
+  const log = createLogger('test-all-undef', { json: false });
+  const chunks = [];
+  const origWrite = process.stdout.write;
+  process.stdout.write = (chunk) => { chunks.push(chunk); return true; };
+  log.info('clean', { a: undefined, b: undefined });
+  process.stdout.write = origWrite;
+
+  assert.equal(chunks[0].trim(), '[test-all-undef] clean');
+});
+
+// --- Exec helper ---
+console.log('1b. Exec helper...');
+
+import { execCommand } from '../../src/monitors/exec-helper.js';
+
+test('execCommand success', () => {
+  const result = execCommand('node -e "process.exit(0)"', 5000);
+  assert.equal(result.success, true);
+});
+
+test('execCommand failure returns exitCode and stderr', () => {
+  const result = execCommand('node -e "process.stderr.write(\'err\\n\');process.exit(1)"', 5000);
+  assert.equal(result.success, false);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes('err'));
+});
+
+test('execCommand truncates long commands in preview', () => {
+  const longCmd = 'echo ' + 'a'.repeat(200);
+  const result = execCommand(longCmd, 5000);
+  assert.ok(result.cmdPreview.length <= 80, `Preview too long: ${result.cmdPreview.length}`);
+  assert.ok(result.cmdPreview.endsWith('...'));
+});
+
+test('execCommand short command preview is full command', () => {
+  const result = execCommand('echo hi', 5000);
+  assert.equal(result.cmdPreview, 'echo hi');
+});
+
 // --- Config validation ---
 console.log('2. Config validation...');
 
