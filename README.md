@@ -34,14 +34,14 @@ Manager Runtime (src/index.js)
 └── State        — persist queue, history, metrics to disk
 ```
 
-## Components (17 built-in)
+## Components (20 built-in)
 
 | Type | Name | Description |
 |------|------|-------------|
 | Monitor | `process` | Run command, report if exit != 0 |
 | Monitor | `log` | Tail file, match regex patterns |
 | Monitor | `cron` | Run checks on independent cron schedule |
-| Input | `bridge` | Poll directory for JSON task files |
+| Input | `bridge` | Poll/watch directory for JSON task files |
 | Input | `alert` | In-memory queue (monitor to dispatcher) |
 | Input | `github` | Poll GitHub issues by label via gh CLI |
 | Input | `webhook` | HTTP POST endpoint with HMAC auth |
@@ -56,6 +56,8 @@ Manager Runtime (src/index.js)
 | Notifier | `webhook` | Post results to Teams/Slack/JSON endpoint |
 | Notifier | `file` | Write results to disk as JSON files |
 | Utility | `sharder` | Split tasks across dimensions (cartesian/chunk/round-robin) |
+| Utility | `parallelDispatch` | Run sharded work units across workers concurrently |
+| Utility | `aggregateResults` | Merge parallel results with status rollup |
 
 ## Configuration
 
@@ -123,7 +125,7 @@ helm install ccc helm/ccc-manager/ -f my-values.yaml
 # Override individual values
 helm install ccc helm/ccc-manager/ \
   --set image.repository=my-registry/ccc-manager \
-  --set image.tag=v1.14.0 \
+  --set image.tag=v1.18.0 \
   --set persistence.storageClassName=gp3 \
   --set serviceMonitor.enabled=true
 ```
@@ -197,7 +199,7 @@ The plugin file should export a class extending the appropriate base class from 
 ## Testing
 
 ```bash
-npm test    # 19 suites, 476 tests
+npm test    # 21 suites, 581 tests
 ```
 
 ## License
