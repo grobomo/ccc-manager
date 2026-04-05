@@ -32,7 +32,7 @@ node src/index.js config/example.yaml
 ## Testing
 
 ```bash
-npm test                          # All 13 suites (271 tests)
+npm test                          # All 14 suites (294 tests)
 node scripts/test/run-all.js      # Same thing
 node scripts/test/test-scaffold.js  # Core framework only
 ```
@@ -54,6 +54,8 @@ node scripts/test/test-scaffold.js  # Core framework only
 | Worker | `ec2` | Execute via SSH, SSM, or local |
 | Input | `webhook` | HTTP POST endpoint with HMAC auth |
 | Notifier | `webhook` | Post results to Teams/Slack/JSON |
+| Notifier | `file` | Write results to disk as JSON files |
+| Monitor | `cron` | Run checks on independent cron schedule |
 
 ## Docker
 

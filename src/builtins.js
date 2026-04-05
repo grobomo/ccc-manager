@@ -4,6 +4,7 @@ import { BridgeInput } from './inputs/bridge.js';
 import { AlertInput } from './inputs/alert.js';
 import { ProcessMonitor } from './monitors/process.js';
 import { LogMonitor } from './monitors/log.js';
+import { CronMonitor } from './monitors/cron.js';
 import { GitHubInput } from './inputs/github.js';
 import { WebhookInput } from './inputs/webhook.js';
 import { SHTDDispatcher } from './dispatcher/shtd.js';
@@ -13,6 +14,7 @@ import { LocalWorker } from './workers/local.js';
 import { K8sWorker } from './workers/k8s.js';
 import { EC2Worker } from './workers/ec2.js';
 import { WebhookNotifier } from './notifiers/webhook.js';
+import { FileNotifier } from './notifiers/file.js';
 
 export function registerBuiltins(registry) {
   registry.registerInput('bridge', BridgeInput);
@@ -21,6 +23,7 @@ export function registerBuiltins(registry) {
   registry.registerInput('webhook', WebhookInput);
   registry.registerMonitor('process', ProcessMonitor);
   registry.registerMonitor('log', LogMonitor);
+  registry.registerMonitor('cron', CronMonitor);
   registry.registerDispatcher('shtd', SHTDDispatcher);
   registry.registerDispatcher('claude', ClaudeDispatcher);
   registry.registerVerifier('test-suite', TestSuiteVerifier);
@@ -28,4 +31,5 @@ export function registerBuiltins(registry) {
   registry.registerWorker('k8s', K8sWorker);
   registry.registerWorker('ec2', EC2Worker);
   registry.registerNotifier('webhook', WebhookNotifier);
+  registry.registerNotifier('file', FileNotifier);
 }

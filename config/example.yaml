@@ -6,11 +6,22 @@ interval: 60000
 
 # Monitors detect issues automatically
 monitors:
-  # Each key is the monitor instance name
+  # Process monitor — run command, report if exit != 0
   # health:
-  #   type: pod-health
-  #   namespace: default
-  #   threshold: 3
+  #   type: process
+  #   command: kubectl get pods --no-headers | grep -v Running
+  # Log monitor — tail file, match regex patterns
+  # logs:
+  #   type: log
+  #   path: /var/log/app.log
+  #   patterns:
+  #     - ERROR
+  #     - OOM
+  # Cron monitor — run checks on independent schedule (cron expression)
+  # scheduled-check:
+  #   type: cron
+  #   command: curl -f http://localhost:8080/healthz
+  #   schedule: "*/5 * * * *"
 
 # Inputs receive tasks from external sources
 inputs:
@@ -56,6 +67,11 @@ notifiers:
   #   type: webhook
   #   url: https://hooks.slack.com/services/...
   #   format: slack
+  # File notifier — write results to disk for bridge consumption
+  # results:
+  #   type: file
+  #   dir: /data/bridge/results
+  #   prefix: result
 
 # Retry failed tasks N times before marking as failed (default: 0)
 # maxRetries: 2
