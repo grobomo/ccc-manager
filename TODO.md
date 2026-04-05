@@ -99,6 +99,11 @@
 - [x] T073: E2E integration test — bridge task file → full pipeline with mock worker
 - [x] T074: Marketplace PR #76 — fix Copilot review comments (SKILL.md frontmatter)
 
+## Phase 19: Code Review Hardening
+- [x] T075: K8sWorker command injection — quote task.command in kubectl exec
+- [x] T076: WebhookNotifier use structured logger instead of console.error
+- [x] T077: ProcessMonitor — truncate command in issue summary to avoid leaking secrets
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

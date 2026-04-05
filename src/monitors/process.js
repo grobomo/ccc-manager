@@ -16,9 +16,11 @@ export class ProcessMonitor extends Monitor {
       execSync(this.command, { stdio: 'pipe', timeout: this.config.timeout || 30000 });
       return [];
     } catch (err) {
+      // Truncate command in summary to avoid leaking secrets in long commands
+      const cmdPreview = this.command.length > 80 ? this.command.slice(0, 77) + '...' : this.command;
       return [{
         severity: 'high',
-        summary: `Command failed: ${this.command}`,
+        summary: `Command failed: ${cmdPreview}`,
         details: {
           exitCode: err.status,
           stderr: err.stderr?.toString().slice(0, 500) || '',
