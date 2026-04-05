@@ -18,7 +18,9 @@ inputs:
     completedDir: /data/rone-bridge/requests/completed
 
 dispatcher:
-  type: shtd
+  type: claude
+  timeout: 60000
+  projectDir: /app
 
 verifiers:
   tests:

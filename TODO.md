@@ -1,22 +1,20 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 7)
+## Session Handoff (2026-04-05, session 9)
 
 **What was done this session:**
-- T060: Claude-powered dispatcher — calls `claude -p` for AI spec generation, falls back to SHTD
-- T061: Configurable dedup window via `dedupWindow` config (was hardcoded 1hr)
-- T062: History rotation via `maxHistory` config (prevents unbounded growth)
-- T063: Plugin loader — components with `./path` type are dynamically imported
-- T064: Fix command injection in GitHubInput (shell-escape repo/label args)
-- T065: Structured JSON logging mode (`logFormat: json` or `CCC_LOG_FORMAT=json`)
-- T066: Config validation at startup — catches bad configs before runtime
-- T067: Export logger for plugins, add package exports
-- T068: LogMonitor efficiency — read only new bytes via fd offset (handles log rotation)
-- T069: Version bump to v1.3.0
-- 252 tests across 12 suites, 0 failures
+- T072: Updated rone-teams-poller.yaml to use claude dispatcher
+- T073: E2E integration test — bridge → claude dispatcher (fallback) → local worker → verifier (19 tests)
+- T074: Fixed marketplace PR #76 Copilot review comments (SKILL.md frontmatter, counts)
+- 271 tests across 13 suites, 0 failures, 32 PRs merged
 
-**Current state:** v1.3.0 on main. 15 components, 252 tests across 12 suites, 30 PRs merged.
-**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, awaiting approval)
+**Current state:** v1.3.0 on main. 15 components, 271 tests across 13 suites, 32 PRs merged.
+**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
+
+**Next priorities (zoom out):**
+- Consider a `cron` monitor type for scheduled health checks vs fixed interval
+- Add a `file` notifier (write results to disk for bridge consumption)
+- Real integration with rone-teams-poller: test with actual RONE bridge files from K8s PVC
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -95,6 +93,11 @@
 ## Phase 17: Code Review Fixes
 - [x] T070: WebhookNotifier — extend Notifier base class, add url validation
 - [x] T071: Dispatcher dispatch() DRY — move shared dispatch() to base class
+
+## Phase 18: Integration & E2E
+- [x] T072: Update rone-teams-poller.yaml to use claude dispatcher
+- [x] T073: E2E integration test — bridge task file → full pipeline with mock worker
+- [x] T074: Marketplace PR #76 — fix Copilot review comments (SKILL.md frontmatter)
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
