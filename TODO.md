@@ -10,9 +10,12 @@
 - T064: Fix command injection in GitHubInput (shell-escape repo/label args)
 - T065: Structured JSON logging mode (`logFormat: json` or `CCC_LOG_FORMAT=json`)
 - T066: Config validation at startup — catches bad configs before runtime
-- 252 tests across 12 suites, 0 failures, v1.2.0
+- T067: Export logger for plugins, add package exports
+- T068: LogMonitor efficiency — read only new bytes via fd offset (handles log rotation)
+- T069: Version bump to v1.3.0
+- 252 tests across 12 suites, 0 failures
 
-**Current state:** On branch 023-T064-security-logging. 15 components, 252 tests.
+**Current state:** v1.3.0 on main. 15 components, 252 tests across 12 suites, 30 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, awaiting approval)
 
 ## Completed Phases (1-8)
@@ -83,6 +86,11 @@
 - [x] T064: Fix command injection in GitHubInput (shell-escape repo/label args)
 - [x] T065: Structured JSON logging mode for production deployments
 - [x] T066: Config validation at startup — catch bad configs early
+
+## Phase 16: Polish & Package
+- [x] T067: Export logger for plugins, add package exports
+- [x] T068: LogMonitor efficiency — use file offset instead of reading entire file
+- [x] T069: Version bump to v1.3.0, update component docs
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
