@@ -1,20 +1,22 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 23)
+## Session Handoff (2026-04-05, session 24)
 
 **What was done this session:**
 - T139-T142: Helm chart (7 templates + NOTES.txt), RONE values overlay, chart test suite, v1.14.0 (PR #63)
-- T148-T152: Task sharding (Sharder class), priority dispatch, parallel execution with dependsOn DAG,
-  SQS dispatcher + SQS input, standalone dispatcher-api.py for EP, v1.15.0 (PR #64)
-- All EP cross-project blockers resolved
+- T148-T152: Task sharding, priority dispatch, parallel execution w/ dependsOn DAG,
+  SQS dispatcher + SQS input, standalone dispatcher-api.py, v1.15.0 (PR #64/#65)
+- T153-T154: Security hardening (bridge writeResult path traversal fix), component table 17→20, v1.16.0 (PR #66)
+- All EP cross-project blockers resolved, all PRs merged to main
 
-**Current state:** v1.15.0, 20 components (added SQS input + SQS dispatcher), 20 suites, 556+ JS tests + 24 Python tests.
-**PRs:** #63 (Helm), #64 (sharding/SQS) — both on branch, CI pending.
+**Current state:** v1.16.0 on main. 20 components, 20 suites, 556+ JS tests + 24 Python tests. All CI green.
+**67 PRs merged.** All tasks through T154 complete.
 
 **Next priorities:**
 - Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Merge PRs #63 and #64 after CI passes
+- Code review pass: scan all 26 source files for remaining DRY/security/quality opportunities
+- GitHub release v1.16.0
 
 ## Needed by ep-incident-response (cross-project blocker)
 EP incident response project needs a reusable dispatcher/distribution framework for parallel V1 analysis.
