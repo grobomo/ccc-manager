@@ -1,19 +1,21 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 19)
+## Session Handoff (2026-04-05, session 20)
 
 **What was done this session:**
-- T130-T134: Multi-instance support — isolated state, labeled metrics, MultiManager, shared health, tests
-- Version bump to v1.12.0
+- T135: Migrate rules to hook modules — archived .claude/rules/, content moved to CLAUDE.md
+- Global rules migration: 16 global rules archived, content merged into ~/.claude/CLAUDE.md
+- New hook modules: no-passive-rules.js (blocks all rules/ writes), blueprint-no-sleep.js, git-rebase-safety.js (reset --soft guard)
+- branch-pr-gate.js updated: removed /rules/ from Edit/Write allowlist
 
-**Current state:** v1.12.0 on branch. 17 components, 395 tests across 16 suites.
+**Current state:** v1.12.0 on main. 17 components, 395 tests across 16 suites, 60 PRs merged.
 **All CI green:** Tests (Node 18/20/22) + Secret Scan pass on GitHub Actions.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Version bump + GitHub release for v1.12.0
+- Project-scoped rules migration: ~65 rule files remain across other projects (recording-analyzer, claude-portable, hackathon26, lab-worker, rone-teams-poller, MCP, ep-incident-response)
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -202,6 +204,9 @@
 - [x] T132: Multi-config CLI — accept multiple config files, shared signal handling
 - [x] T133: Aggregated health endpoint — single HTTP server for all instances
 - [x] T134: Multi-instance test suite — verify isolated state, merged metrics, shared health
+
+## Phase 40: Rules → Hook Modules Migration
+- [x] T135: Archive project .claude/rules/, migrate content to hook modules + CLAUDE.md
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
