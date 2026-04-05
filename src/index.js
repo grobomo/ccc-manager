@@ -10,6 +10,7 @@ import { loadConfig } from './config.js';
 import { State } from './state.js';
 import { Registry } from './registry.js';
 import { registerBuiltins } from './builtins.js';
+import { createLogger } from './logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -17,6 +18,7 @@ const ROOT = resolve(__dirname, '..');
 export class Manager {
   constructor(configPath) {
     this.config = loadConfig(configPath);
+    this.log = createLogger('manager', { json: this.config.logFormat === 'json' });
     this.state = new State(resolve(ROOT, 'state'), {
       dedupWindow: this.config.dedupWindow,
       maxHistory: this.config.maxHistory,
@@ -45,9 +47,9 @@ export class Manager {
         try {
           const mod = await import(resolve(ROOT, type));
           Cls = mod.default || Object.values(mod)[0];
-          console.log(`[manager] Loaded plugin: ${type}`);
+          this.log.info('Loaded plugin', { plugin: type });
         } catch (err) {
-          console.error(`[manager] Failed to load plugin ${type}: ${err.message}`);
+          this.log.error('Failed to load plugin', { plugin: type, error: err.message });
         }
       }
 
@@ -55,7 +57,7 @@ export class Manager {
         if (Array.isArray(target)) target.push(new Cls(name, cfg));
         else target[name] = new Cls(cfg); // workers use object map, no name arg
       } else {
-        console.warn(`[manager] Unknown ${section} type: ${cfg.type || name}`);
+        this.log.warn('Unknown component type', { section, type: cfg.type || name });
       }
     }
   }
@@ -76,7 +78,7 @@ export class Manager {
     }
 
     const workerCount = Object.keys(this.workers).length;
-    console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers, ${workerCount} workers, ${this.notifiers.length} notifiers`);
+    this.log.info('Initialized', { monitors: this.monitors.length, inputs: this.inputs.length, verifiers: this.verifiers.length, workers: workerCount, notifiers: this.notifiers.length });
   }
 
   async _processTask(task) {
@@ -84,7 +86,7 @@ export class Manager {
     task._retries = task._retries || 0;
 
     try {
-      console.log(`[dispatcher] Processing: ${task.summary || task.id}${task._retries > 0 ? ` (retry ${task._retries}/${maxRetries})` : ''}`);
+      this.log.info('Processing task', { taskId: task.id, summary: task.summary, retry: task._retries > 0 ? `${task._retries}/${maxRetries}` : undefined });
       const plan = await this.dispatcher.analyze(task);
       const result = await this.dispatcher.dispatch(plan, this.config, this.workers);
 
@@ -96,24 +98,24 @@ export class Manager {
 
       if (!verified.passed && task._retries < maxRetries) {
         task._retries++;
-        console.log(`[manager] Task ${task.id}: FAILED — retrying (${task._retries}/${maxRetries})`);
+        this.log.warn('Task failed, retrying', { taskId: task.id, retry: `${task._retries}/${maxRetries}` });
         task.status = 'queued';
         this.state._save('queue.json', this.state.queue);
         return;
       }
 
       this.state.complete(task.id, verified);
-      console.log(`[manager] Task ${task.id}: ${verified.passed ? 'FIXED' : 'FAILED'}`);
+      this.log.info(`Task ${verified.passed ? 'FIXED' : 'FAILED'}`, { taskId: task.id, passed: verified.passed });
       await this._notify(task, verified);
     } catch (err) {
       if (task._retries < maxRetries) {
         task._retries++;
-        console.error(`[dispatcher] Error processing ${task.id}: ${err.message} — retrying (${task._retries}/${maxRetries})`);
+        this.log.error('Task error, retrying', { taskId: task.id, error: err.message, retry: `${task._retries}/${maxRetries}` });
         task.status = 'queued';
         this.state._save('queue.json', this.state.queue);
         return;
       }
-      console.error(`[dispatcher] Error processing ${task.id}: ${err.message}`);
+      this.log.error('Task error', { taskId: task.id, error: err.message });
       const failResult = { passed: false, details: err.message };
       this.state.complete(task.id, failResult);
       await this._notify(task, failResult);
@@ -125,7 +127,7 @@ export class Manager {
       try {
         await notifier.notify(task, result);
       } catch (err) {
-        console.error(`[notify:${notifier.name}] Error: ${err.message}`);
+        this.log.error('Notify error', { notifier: notifier.name, error: err.message });
       }
     }
   }
@@ -141,11 +143,11 @@ export class Manager {
             this.state.enqueue(issue);
             this.state.metrics.issues++;
             this.state._save('metrics.json', this.state.metrics);
-            console.log(`[monitor:${monitor.name}] Issue detected: ${issue.summary}`);
+            this.log.info('Issue detected', { monitor: monitor.name, issueId: issue.id, summary: issue.summary });
           }
         }
       } catch (err) {
-        console.error(`[monitor:${monitor.name}] Error: ${err.message}`);
+        this.log.error('Monitor error', { monitor: monitor.name, error: err.message });
       }
     }
 
@@ -157,11 +159,11 @@ export class Manager {
           task.id = task.id || `${input.name}-${Date.now()}`;
           if (!this.state.isDuplicate(task.id)) {
             this.state.enqueue(task);
-            console.log(`[input:${input.name}] Task received: ${task.summary || task.type}`);
+            this.log.info('Task received', { input: input.name, taskId: task.id, summary: task.summary || task.type });
           }
         }
       } catch (err) {
-        console.error(`[input:${input.name}] Error: ${err.message}`);
+        this.log.error('Input error', { input: input.name, error: err.message });
       }
     }
 
@@ -201,7 +203,7 @@ export class Manager {
       }
     });
     this.healthServer.listen(port, () => {
-      console.log(`[health] Listening on :${port} (/healthz, /readyz, /metrics)`);
+      this.log.info('Health endpoint listening', { port, endpoints: ['/healthz', '/readyz', '/metrics'] });
     });
   }
 
@@ -209,13 +211,13 @@ export class Manager {
     await this.init();
     this.running = true;
     const interval = this.config.interval || 60000;
-    console.log(`[manager] Starting event loop (${interval}ms interval)`);
+    this.log.info('Starting event loop', { interval });
 
     this.startHealth();
 
     await this.runCycle();
     const timer = setInterval(() => {
-      if (this.running) this.runCycle().catch(err => console.error(`[manager] Cycle error: ${err.message}`));
+      if (this.running) this.runCycle().catch(err => this.log.error('Cycle error', { error: err.message }));
     }, interval);
     this.timers.push(timer);
 
@@ -224,14 +226,14 @@ export class Manager {
         task.source = `input:${input.name}`;
         task.id = task.id || `${input.name}-${Date.now()}`;
         this.state.enqueue(task);
-      }).catch(err => console.error(`[input:${input.name}] Listen error: ${err.message}`));
+      }).catch(err => this.log.error('Listen error', { input: input.name, error: err.message }));
     }
   }
 
   async stop() {
     if (!this.running) return;
     this.running = false;
-    console.log('[manager] Shutting down — draining queue...');
+    this.log.info('Shutting down — draining queue');
     this.timers.forEach(t => clearInterval(t));
     this.timers = [];
 
@@ -248,7 +250,7 @@ export class Manager {
     while (this.state.queue.length > 0 && this.dispatcher && Date.now() < deadline) {
       const task = this.state.dequeue();
       if (!task) break;
-      console.log(`[manager] Draining: ${task.summary || task.id}`);
+      this.log.debug('Draining task', { taskId: task.id, summary: task.summary });
       await this._processTask(task);
       drained++;
     }
@@ -256,10 +258,10 @@ export class Manager {
     // Re-queue anything we couldn't drain in time
     const remaining = this.state.queue.length;
     if (remaining > 0) {
-      console.log(`[manager] ${remaining} task(s) still queued — will resume on restart`);
+      this.log.warn('Tasks still queued — will resume on restart', { remaining });
     }
     if (drained > 0) {
-      console.log(`[manager] Drained ${drained} task(s) during shutdown`);
+      this.log.info('Drained tasks during shutdown', { drained });
     }
 
     // Close health server
@@ -267,7 +269,7 @@ export class Manager {
       await new Promise(r => this.healthServer.close(r));
       this.healthServer = null;
     }
-    console.log('[manager] Stopped');
+    this.log.info('Stopped');
   }
 }
 
