@@ -52,6 +52,39 @@ async function main() {
   const tasks2 = await bridge.poll();
   assert(tasks2.length === 0, 'Second poll returns empty');
 
+  // 1b. Test BridgeInput with rone-bridge format (completedDir + normalization)
+  console.log('\n1b. Testing rone-bridge format...');
+  const roneBridgeDir = resolve(tmpDir, 'rone-bridge');
+  const roneCompletedDir = resolve(tmpDir, 'rone-completed');
+  mkdirSync(roneBridgeDir, { recursive: true });
+
+  const roneTask = {
+    request_id: 'req-abc123',
+    classification: 'SELF_REPAIR',
+    text: 'The hex IDs are still showing in output',
+    sender: 'user@example.com',
+    timestamp: '2026-04-05T12:00:00Z'
+  };
+  writeFileSync(resolve(roneBridgeDir, 'req-abc123.json'), JSON.stringify(roneTask));
+
+  const roneBridge = new BridgeInput('rone', { path: roneBridgeDir, completedDir: roneCompletedDir });
+  const roneTasks = await roneBridge.poll();
+  assert(roneTasks.length === 1, `Rone bridge found 1 task (got ${roneTasks.length})`);
+  assert(roneTasks[0].id === 'req-abc123', `Normalized id: ${roneTasks[0]?.id}`);
+  assert(roneTasks[0].type === 'SELF_REPAIR', `Normalized type: ${roneTasks[0]?.type}`);
+  assert(roneTasks[0].summary === 'The hex IDs are still showing in output', `Normalized summary: ${roneTasks[0]?.summary}`);
+
+  // File moved to completedDir, not done/
+  assert(existsSync(roneCompletedDir), 'completedDir created');
+  assert(readdirSync(roneCompletedDir).includes('req-abc123.json'), 'File in completedDir');
+  assert(!existsSync(resolve(roneBridgeDir, 'done')), 'No done/ dir when completedDir set');
+
+  // 1c. Test writeResult
+  console.log('\n1c. Testing writeResult...');
+  roneBridge.writeResult('req-abc123', { status: 'fixed', reply: 'Hex IDs removed' });
+  const resultFile = resolve(roneCompletedDir, 'req-abc123.json');
+  assert(existsSync(resultFile), 'Result file written');
+
   // 2. Test AlertInput
   console.log('\n2. Testing AlertInput...');
   const { AlertInput } = await import('../../src/inputs/alert.js');

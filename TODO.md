@@ -39,7 +39,7 @@
 ## Phase 9: Harden Runtime
 - [x] T040: YAML parser — quoted strings, object lists, 31 regression tests
 - [x] T041: Graceful shutdown — drain queue on SIGTERM with configurable timeout
-- [ ] T042: Wire real rone-teams-poller SELF_REPAIR → bridge directory integration
+- [x] T042: Wire rone-teams-poller SELF_REPAIR → bridge with completedDir + format normalization
 - [x] T043: Health endpoint — /healthz, /readyz, /metrics for K8s probes
 - [ ] T044: Publish as npm package or emu marketplace plugin
 - [ ] T045: Demo: run manager against a real config, show monitor→dispatch→verify cycle
