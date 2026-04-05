@@ -1,28 +1,30 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 22)
+## Session Handoff (2026-04-05, session 23)
 
 **What was done this session:**
-- Full code review of all 22 source files — clean, secure, well-structured
-- T139-T142: Helm chart (7 templates), RONE values overlay, chart test suite, v1.14.0
-- 17 suites, 444 tests, 0 failures
+- T139-T142: Helm chart (7 templates + NOTES.txt), RONE values overlay, chart test suite, v1.14.0 (PR #63)
+- T148-T152: Task sharding (Sharder class), priority dispatch, parallel execution with dependsOn DAG,
+  SQS dispatcher + SQS input, standalone dispatcher-api.py for EP, v1.15.0 (PR #64)
+- All EP cross-project blockers resolved
 
-**Current state:** v1.14.0 on branch 063-T139-helm-chart. 17 components, 444 tests across 17 suites.
-**All CI green:** Tests (Node 18/20/22) + Secret Scan pass on GitHub Actions.
+**Current state:** v1.15.0, 20 components (added SQS input + SQS dispatcher), 20 suites, 556+ JS tests + 24 Python tests.
+**PRs:** #63 (Helm), #64 (sharding/SQS) — both on branch, CI pending.
 
-**Next priorities (zoom out):**
+**Next priorities:**
 - Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
+- Merge PRs #63 and #64 after CI passes
 
 ## Needed by ep-incident-response (cross-project blocker)
 EP incident response project needs a reusable dispatcher/distribution framework for parallel V1 analysis.
 Currently blocked because distribution logic doesn't exist as a pluggable component.
 
-- [ ] T143 Create a reusable task sharding strategy: given a high-level task + worker count, produce discrete work units. EP needs: "analyze incident" → N units split by (time range × data source × analysis type)
-- [ ] T144 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
-- [ ] T145 Add SQS-backed dispatcher mode: EC2Worker already exists, but need dispatcher that queues to SQS instead of running locally. EP fleet uses SQS for task/result queues.
-- [ ] T146 Add result aggregation: collect results from N workers, merge into unified report. EP needs hierarchical aggregation (workers → T3 managers → dispatcher → final report)
-- [ ] T147 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
+- [x] T148 Enhance T143 sharding for EP: Sharder class with cartesian/chunk/round-robin, EP test (3×3×3=27 units)
+- [x] T149 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
+- [x] T150 Add SQS-backed dispatcher mode: SQSDispatcher + SQSInput — task/result queues via AWS CLI
+- [x] T151 Add result aggregation: aggregateResults() with custom merge function, status rollup
+- [x] T152 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -225,6 +227,11 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T140: RONE values overlay — values-rone.yaml for hackathon-teams-poller deployment
 - [x] T141: Helm chart test — validate templates render correctly with default and RONE values
 - [x] T142: Version bump to v1.14.0, update package.json files array, GitHub release
+
+## Phase 43: Runtime Improvements
+- [x] T143: Task sharding — dispatcher splits plans into parallel sub-tasks across multiple workers
+- [x] T144: Event-driven bridge — fs.watch for instant task pickup instead of polling interval
+- [x] T145: Version bump to v1.15.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

@@ -4,6 +4,9 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+// Priority levels (lower number = higher priority)
+export const PRIORITY_ORDER = { critical: 0, high: 1, normal: 2, low: 3 };
+
 export class State {
   constructor(stateDir, options = {}) {
     this.dir = stateDir;
@@ -31,19 +34,29 @@ export class State {
   enqueue(task) {
     task.enqueuedAt = Date.now();
     task.status = 'queued';
+    task.priority = task.priority || 'normal';
     this.queue.push(task);
     this._save('queue.json', this.queue);
     return task;
   }
 
   dequeue() {
-    const task = this.queue.find(t => t.status === 'queued');
-    if (task) {
-      task.status = 'in_progress';
-      task.startedAt = Date.now();
-      this._save('queue.json', this.queue);
-    }
-    return task || null;
+    // Priority-aware: pick highest-priority queued task (critical > high > normal > low)
+    const queued = this.queue.filter(t => t.status === 'queued');
+    if (queued.length === 0) return null;
+
+    queued.sort((a, b) => {
+      const pa = PRIORITY_ORDER[a.priority] ?? PRIORITY_ORDER.normal;
+      const pb = PRIORITY_ORDER[b.priority] ?? PRIORITY_ORDER.normal;
+      if (pa !== pb) return pa - pb;
+      return (a.enqueuedAt || 0) - (b.enqueuedAt || 0); // FIFO within same priority
+    });
+
+    const task = queued[0];
+    task.status = 'in_progress';
+    task.startedAt = Date.now();
+    this._save('queue.json', this.queue);
+    return task;
   }
 
   complete(taskId, result) {

@@ -53,6 +53,7 @@ Manager Runtime (src/index.js)
 | Worker | `ec2` | Execute via SSH or AWS SSM |
 | Notifier | `webhook` | Post results to Teams/Slack/JSON endpoint |
 | Notifier | `file` | Write results to disk as JSON files |
+| Utility | `sharder` | Split tasks across dimensions (cartesian/chunk/round-robin) |
 
 ## Configuration
 
@@ -194,7 +195,7 @@ The plugin file should export a class extending the appropriate base class from 
 ## Testing
 
 ```bash
-npm test    # 17 suites, 444 tests
+npm test    # 19 suites, 476 tests
 ```
 
 ## License

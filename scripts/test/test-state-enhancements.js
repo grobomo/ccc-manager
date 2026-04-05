@@ -132,8 +132,73 @@ test('Metrics not affected by rotation', () => {
   assert.equal(state.history.length, 2, 'History capped at 2');
 });
 
+// --- Priority-aware dequeue ---
+console.log('3. Priority-aware dequeue...');
+
+test('Default priority is normal', () => {
+  const state = freshState();
+  const task = state.enqueue({ id: 'p-1', summary: 'test' });
+  assert.equal(task.priority, 'normal');
+});
+
+test('Critical dequeued before normal', () => {
+  const state = freshState();
+  state.enqueue({ id: 'p-norm', summary: 'normal task' });
+  state.enqueue({ id: 'p-crit', summary: 'critical task', priority: 'critical' });
+
+  const first = state.dequeue();
+  assert.equal(first.id, 'p-crit', 'Critical should be first');
+  const second = state.dequeue();
+  assert.equal(second.id, 'p-norm', 'Normal should be second');
+});
+
+test('Priority order: critical > high > normal > low', () => {
+  const state = freshState();
+  state.enqueue({ id: 'p-low', summary: 'low', priority: 'low' });
+  state.enqueue({ id: 'p-high', summary: 'high', priority: 'high' });
+  state.enqueue({ id: 'p-norm', summary: 'normal', priority: 'normal' });
+  state.enqueue({ id: 'p-crit', summary: 'critical', priority: 'critical' });
+
+  const order = [];
+  let task;
+  while ((task = state.dequeue())) order.push(task.id);
+  assert.deepEqual(order, ['p-crit', 'p-high', 'p-norm', 'p-low']);
+});
+
+test('Same priority uses FIFO (enqueuedAt)', () => {
+  const state = freshState();
+  state.enqueue({ id: 'fifo-1', summary: 'first', priority: 'high' });
+  state.enqueue({ id: 'fifo-2', summary: 'second', priority: 'high' });
+  state.enqueue({ id: 'fifo-3', summary: 'third', priority: 'high' });
+
+  const order = [];
+  let task;
+  while ((task = state.dequeue())) order.push(task.id);
+  assert.deepEqual(order, ['fifo-1', 'fifo-2', 'fifo-3']);
+});
+
+test('Unknown priority treated as normal', () => {
+  const state = freshState();
+  state.enqueue({ id: 'unk-1', summary: 'unknown', priority: 'mystery' });
+  state.enqueue({ id: 'unk-2', summary: 'high', priority: 'high' });
+
+  const first = state.dequeue();
+  assert.equal(first.id, 'unk-2', 'High before unknown');
+});
+
+test('In-progress tasks skipped during priority dequeue', () => {
+  const state = freshState();
+  state.enqueue({ id: 'skip-1', summary: 'first', priority: 'critical' });
+  state.enqueue({ id: 'skip-2', summary: 'second', priority: 'low' });
+
+  const first = state.dequeue(); // Takes critical
+  assert.equal(first.id, 'skip-1');
+  const second = state.dequeue(); // Should get low, not re-pick critical
+  assert.equal(second.id, 'skip-2');
+});
+
 // --- Plugin loader (via Manager) ---
-console.log('3. Plugin loader...');
+console.log('4. Plugin loader...');
 
 test('Plugin path detection', () => {
   // Just test that the path-based type detection logic is correct
@@ -147,7 +212,7 @@ test('Plugin path detection', () => {
 });
 
 // --- State persistence with new options ---
-console.log('4. State persistence with options...');
+console.log('5. State persistence with options...');
 
 test('State loads from disk with correct options', () => {
   const state1 = freshState({ dedupWindow: 5000, maxHistory: 50 });

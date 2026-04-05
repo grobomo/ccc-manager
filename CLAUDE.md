@@ -32,7 +32,7 @@ node src/index.js config/example.yaml
 ## Testing
 
 ```bash
-npm test                          # All 15 suites (359 tests)
+npm test                          # All 19+ suites (511+ tests)
 node scripts/test/run-all.js      # Same thing
 node scripts/test/test-scaffold.js  # Core framework only
 ```
@@ -56,6 +56,9 @@ node scripts/test/test-scaffold.js  # Core framework only
 | Notifier | `webhook` | Post results to Teams/Slack/JSON |
 | Notifier | `file` | Write results to disk as JSON files |
 | Monitor | `cron` | Run checks on independent cron schedule |
+| Input | `sqs` | Receive tasks from AWS SQS queue |
+| Dispatcher | `sqs` | Distribute sharded work via SQS task/result queues |
+| Utility | `sharder` | Split tasks across dimensions (cartesian/chunk/round-robin) |
 
 ## Docker
 

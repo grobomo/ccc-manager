@@ -1,6 +1,6 @@
 {
   "name": "ccc-manager",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "description": "Universal CCC fleet manager — monitors health, accepts input, dispatches fixes via SHTD pipeline",
   "type": "module",
   "main": "src/index.js",
@@ -11,7 +11,8 @@
     "./registry": "./src/registry.js",
     "./base": "./src/base.js",
     "./builtins": "./src/builtins.js",
-    "./logger": "./src/logger.js"
+    "./logger": "./src/logger.js",
+    "./sharder": "./src/dispatcher/sharder.js"
   },
   "bin": {
     "ccc-manager": "src/index.js"
