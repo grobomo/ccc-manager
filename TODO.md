@@ -198,8 +198,8 @@
 - [x] T127: Add GitHub input to rone-teams-poller.yaml for SELF_REPAIR issues
 
 ## Phase 38: CI Fix & Release
-- [ ] T128: Fix secret-scan self-match — add file type filters to PRIVATE KEY grep
-- [ ] T129: Version bump to v1.11.0, GitHub release with CHANGELOG update
+- [x] T128: Fix secret-scan self-match — add file type filters to PRIVATE KEY grep
+- [x] T129: Version bump to v1.11.0, GitHub release with CHANGELOG update
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
