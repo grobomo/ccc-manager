@@ -1,19 +1,26 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 26)
+## Session Handoff (2026-04-05, session 28)
 
 **What was done this session:**
-- T155-T157: Code review of all 26 source files, DRY exec-helper, logger undefined filter, SQS listen resilience, v1.17.0 (PR #67)
-- T158-T160: exec-helper unit tests (18), logger JSON undefined fix, 7 new logger tests, v1.18.0 (PR #68)
-- T161-T162: README update (component table 17→20, test counts 476→581), v1.19.0
+- T171-T178: Multi-agent SHTD coordination (spec 018) — 3 new modules, 34 new tests
+  - WorktreeManager (src/workers/worktree.js) — git worktree isolation per task
+  - Write set validation (src/dispatcher/write-sets.js) — auto-serializes tasks with overlapping file targets
+  - FleetCoordinator (src/fleet.js) — heartbeat, peer discovery, task ownership, stale pruning
+  - Wired into: base.js dispatch(), ClaudeDispatcher prompt, Manager cycle/stop, State.dequeue()
+  - /fleet health endpoint for fleet status
+- Branch: 074-T171-multi-agent-coordination (pushed, not yet PR'd)
 
-**Current state:** v1.19.0 on main. 20 components, 21 suites, 581 tests. All CI green.
-**All tasks through T162 complete.**
+**Current state:** On branch 074-T171-multi-agent-coordination. 23 suites, 641 tests, all passing.
+
+**Remaining on this branch (spec 018):**
+- [ ] T179: Integration test — two simulated managers with fleet coordination, no conflicts
+- [ ] T180: Version bump, CHANGELOG, README update
 
 **Next priorities:**
-- Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
+- Merge multi-agent coordination PR, then test with two Claude tabs simultaneously
+- Real integration with rone-teams-poller: deploy to K8s with Helm
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Consider: metrics dashboard for real deployment, alerting rules, runbook documentation
 
 ## Needed by ep-incident-response (cross-project blocker)
 EP incident response project needs a reusable dispatcher/distribution framework for parallel V1 analysis.
