@@ -149,6 +149,7 @@
 
 ## Phase 27: CLI Polish
 - [x] T095: CLI flags — --help, --version, --validate for ops deployment scripts
+- [x] T096: CLI --list-components flag — discover available component types for config authoring
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
