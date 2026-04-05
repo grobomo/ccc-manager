@@ -51,14 +51,55 @@ function parseBlock(lines, startIdx) {
           // List
           const list = [];
           let j = i + 1;
+          const listIndent = nextIndent;
           while (j < lines.length) {
             const ll = lines[j];
             const li = ll.length - ll.trimStart().length;
-            if (li <= indent) break;
-            if (ll.trim().startsWith('- ')) {
-              list.push(parseValue(ll.trim().slice(2).trim()));
+            if (li < listIndent) break;
+            const lt = ll.trim();
+            if (li === listIndent && lt.startsWith('- ')) {
+              const itemText = lt.slice(2).trim();
+              const itemColonIdx = itemText.indexOf(':');
+              if (itemColonIdx !== -1 && itemText.slice(itemColonIdx + 1).trim()) {
+                // "- key: value" — start of an object item
+                const obj = {};
+                const k = itemText.slice(0, itemColonIdx).trim();
+                obj[k] = parseValue(itemText.slice(itemColonIdx + 1).trim());
+                // Collect subsequent indented lines as more keys
+                j++;
+                while (j < lines.length) {
+                  const ol = lines[j];
+                  const oi = ol.length - ol.trimStart().length;
+                  const ot = ol.trim();
+                  if (oi <= listIndent) break;
+                  const oc = ot.indexOf(':');
+                  if (oc !== -1) {
+                    obj[ot.slice(0, oc).trim()] = parseValue(ot.slice(oc + 1).trim());
+                  }
+                  j++;
+                }
+                list.push(obj);
+              } else if (itemColonIdx !== -1 && !itemText.slice(itemColonIdx + 1).trim()) {
+                // "- key:" with nested block below — object item with nested children
+                const obj = {};
+                const k = itemText.slice(0, itemColonIdx).trim();
+                if (j + 1 < lines.length) {
+                  const child = parseBlock(lines, j + 1);
+                  obj[k] = child.value;
+                  j = child.nextIdx;
+                } else {
+                  obj[k] = {};
+                  j++;
+                }
+                list.push(obj);
+              } else {
+                // Simple scalar list item
+                list.push(parseValue(itemText));
+                j++;
+              }
+            } else {
+              j++;
             }
-            j++;
           }
           result[key] = list;
           i = j;
@@ -85,6 +126,11 @@ function parseValue(val) {
   if (val === 'true') return true;
   if (val === 'false') return false;
   if (val === 'null') return null;
+  // Strip surrounding quotes (preserves inner content as string)
+  if ((val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))) {
+    return val.slice(1, -1);
+  }
   if (/^\d+$/.test(val)) return parseInt(val, 10);
   if (/^\d+\.\d+$/.test(val)) return parseFloat(val);
   return val;

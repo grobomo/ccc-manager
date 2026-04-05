@@ -32,7 +32,7 @@ node src/index.js config/example.yaml
 ## Testing
 
 ```bash
-npm test                          # All 5 suites (95 tests)
+npm test                          # All 8 suites (152 tests)
 node scripts/test/run-all.js      # Same thing
 node scripts/test/test-scaffold.js  # Core framework only
 ```

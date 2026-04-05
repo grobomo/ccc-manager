@@ -1,80 +1,48 @@
 # CCC Manager — TODO
 
-## Session Handoff
+## Session Handoff (2026-04-05, session 2)
 
-**From**: rone-teams-poller session (2026-04-05)
-**Context**: User wants a universal "manager" framework for CCC fleets. Same engine, different config per project. Monitors health, accepts input (Teams/SSH/GitHub issues), dispatches fixes via SHTD pipeline, verifies results.
+**What was done this session:**
+- Built entire framework from scratch: 8 specs, 39 tasks, all complete
+- 108 tests across 6 suites, 0 failures
+- Published to grobomo/ccc-manager (7 PRs merged)
+- Created `gh_auto` script + enforcement hook (fixes EMU token issue)
+- Installed gh_auto to ~/bin, hook to ~/.claude/hooks/run-modules/PreToolUse/gh-auto-gate.js
+- Rule file at ~/.claude/rules/gh-auto-required.md
 
-**User requirements (verbatim from conversation):**
-1. Self-repair should be generic enough to use in any project — abstract to high level, make modular
-2. Workers should NOT decide how to do things — dispatcher decides, specs it out, distributes spec tasks to workers
-3. Two CCC fleets: RONE (K8s) for RONE tasks, AWS (EC2) for AWS tasks — same codebase
-4. All capabilities must work in all environments (AWS + K8s)
-5. Dispatcher is point of contact for each fleet — constantly running, waiting for tasks from Teams poller or SSH
-6. Deploy SHTD workflow to CCC worker golden image
-7. Abstract the monitor role and self-repair role into a "manager" role that can modularly hook into any project
-8. Same functionality in every project — just monitoring and repairing different things
+**Current state:** On main branch, all merged, clean working tree.
 
-**Architecture decided:**
-- Manager = Monitor + Input Sources + Dispatcher + Verifier + State
-- Per-project config via `manager.yaml` (monitors, inputs, verify command, deploy command, alerts)
-- Environment-agnostic: AWS EC2, RONE K8s, or local
-- Dispatcher is the brain (specs, plans, distributes). Workers are hands (execute single tasks with SHTD hooks).
-- Self-repair is a dispatcher capability, not a worker skill
+## Completed Phases (1-8)
+- Phase 1: Core framework (base classes, config, registry, state, runtime)
+- Phase 2: Input sources (BridgeInput, AlertInput, ProcessMonitor)
+- Phase 3: Worker distribution (SHTDDispatcher, TestSuiteVerifier, LocalWorker)
+- Phase 4: Per-project configs (rone-teams-poller.yaml, claude-portable.yaml)
+- Phase 5: Harden & publish (dedup, metrics fix, secret-scan CI, git config)
+- Phase 6: Environment workers (K8sWorker, EC2Worker, LogMonitor, GitHubInput)
+- Phase 7: Deploy & integrate (Dockerfile, unified test runner, docs)
+- Phase 8: gh_auto (auto GitHub account switching, enforcement hook)
 
-## Phase 1: Core Framework (COMPLETE)
-- [x] T001: Project scaffold — package.json, .gitignore, .github/publish.json, CLAUDE.md, src/
-- [x] T002: Base classes — Monitor, Input, Dispatcher, Verifier in src/base.js
-- [x] T003: Config loader — minimal YAML parser in src/config.js
-- [x] T004: Registry — type→class mapping in src/registry.js
-- [x] T005: State persistence — queue/history/metrics in src/state.js
-- [x] T006: Manager runtime — main loop, init, runCycle, start/stop in src/index.js
-- [x] T007: Example config — config/example.yaml
-- [x] Checkpoint: 22/22 tests pass (scripts/test/test-scaffold.js)
+## Components (10 built-in)
+| Type | Name | File |
+|------|------|------|
+| Monitor | process | src/monitors/process.js |
+| Monitor | log | src/monitors/log.js |
+| Input | bridge | src/inputs/bridge.js |
+| Input | alert | src/inputs/alert.js |
+| Input | github | src/inputs/github.js |
+| Dispatcher | shtd | src/dispatcher/shtd.js |
+| Verifier | test-suite | src/verifiers/test-suite.js |
+| Worker | local | src/workers/local.js |
+| Worker | k8s | src/workers/k8s.js |
+| Worker | ec2 | src/workers/ec2.js |
 
-## Phase 2: Input Sources (COMPLETE)
-- [x] T008: BridgeInput — polls directory for .json task files, moves to done/
-- [x] T009: AlertInput — in-memory queue for monitor→dispatcher pipeline
-- [x] T010: ProcessMonitor — generic health check (command exit code)
-- [x] T011: Auto-registration — builtins.js registers all components
-- [x] T012: Checkpoint: 18/18 tests pass (scripts/test/test-inputs.js)
-
-## Phase 3: Worker Distribution (COMPLETE)
-- [x] T013: SHTDDispatcher — analyze → spec/tasks/branch structure
-- [x] T014: TestSuiteVerifier — command-based verification
-- [x] T015: Worker base class — execute/status/cancel interface
-- [x] T016: LocalWorker — child_process execution for dev/test
-- [x] T017: Builtins registration for dispatcher + verifier
-- [x] T018: Checkpoint: 15/15 tests pass (scripts/test/test-dispatch.js)
-
-## Phase 4: Per-Project Configs (COMPLETE)
-- [x] T019: rone-teams-poller.yaml — process monitor + bridge input + test-suite verifier
-- [x] T020: claude-portable.yaml — process monitor + test-suite verifier
-- [x] T021: Checkpoint: 16/16 tests pass (scripts/test/test-pipeline.js)
-- [x] All 71 tests pass across 4 suites
-
-## Phase 5: Harden & Publish (COMPLETE)
-- [x] T022: Fix metrics.issues persistence — save after increment
-- [x] T023: Add dedup to runCycle — skip if already in queue/recent history
-- [x] T024: Add secret-scan.yml GitHub Actions workflow
-- [x] T025: Configure git local config for grobomo
-- [x] T026: Initial commit and push to grobomo/ccc-manager
-- [x] Gotcha: gh auth switch broken with EMU — use GH_TOKEN=$(gh auth token -u grobomo) instead
-
-## Phase 6: Environment Workers (COMPLETE)
-- [x] T027: K8sWorker — kubectl exec with namespace/pod/container
-- [x] T028: EC2Worker — SSH/SSM with local mode for testing
-- [x] T029: LogMonitor — file tail with regex pattern matching + offset tracking
-- [x] T030: GitHubInput — poll issues via gh CLI with dedup
-- [x] T031: Registration in builtins.js
-- [x] T032: Checkpoint: 24/24 tests pass (scripts/test/test-workers.js), 95 total
-
-## Phase 7: Deploy & Integrate (COMPLETE)
-- [x] T033: Dockerfile — node:20-slim, zero deps
-- [x] T034: Unified test runner — scripts/test/run-all.js (95 tests, 5 suites)
-- [x] T035: Updated package.json + CLAUDE.md component inventory
-
-## Status: All phases complete. 95 tests pass. Published to grobomo/ccc-manager.
+## Phase 9: Harden Runtime
+- [x] T040: YAML parser — quoted strings, object lists, 31 regression tests
+- [x] T041: Graceful shutdown — drain queue on SIGTERM with configurable timeout
+- [ ] T042: Wire real rone-teams-poller SELF_REPAIR → bridge directory integration
+- [x] T043: Health endpoint — /healthz, /readyz, /metrics for K8s probes
+- [ ] T044: Publish as npm package or emu marketplace plugin
+- [ ] T045: Demo: run manager against a real config, show monitor→dispatch→verify cycle
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
@@ -85,4 +53,7 @@
 - RONE K8s pods don't have git — use git bridge or image with git baked in
 - K8s ConfigMap scripts can't import from each other — keep self-contained or use proper image
 - kubeconfig expires every 8h — auto-refresh via Blueprint or RONE API
-- Two GitHub accounts (grobomo=public, tmemu=private) — check publish.json before push
+- gh auth switch broken with EMU — use gh_auto (reads publish.json, sets GH_TOKEN)
+- YAML parser handles any nesting depth, quoted strings, object lists (not inline flow or multiline strings)
+- Branch gate requires task branch (NNN-TNNN-slug), not just feature branch
+- Feature branch needs .test-results/<branch-name>.passed marker to merge to main
