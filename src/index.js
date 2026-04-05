@@ -5,6 +5,7 @@
 
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'node:http';
 import { loadConfig } from './config.js';
 import { State } from './state.js';
 import { Registry } from './registry.js';
@@ -24,6 +25,7 @@ export class Manager {
     this.verifiers = [];
     this.running = false;
     this.timers = [];
+    this.healthServer = null;
   }
 
   async init() {
@@ -132,11 +134,43 @@ export class Manager {
     this.state.recordCycle();
   }
 
+  startHealth() {
+    const port = this.config.healthPort || 8080;
+    this.healthServer = createServer((req, res) => {
+      if (req.url === '/healthz' || req.url === '/livez') {
+        res.writeHead(this.running ? 200 : 503);
+        res.end(JSON.stringify({
+          status: this.running ? 'ok' : 'stopping',
+          uptime: process.uptime(),
+        }));
+      } else if (req.url === '/readyz') {
+        const ready = this.running && this.dispatcher !== null;
+        res.writeHead(ready ? 200 : 503);
+        res.end(JSON.stringify({
+          status: ready ? 'ready' : 'not_ready',
+          queue: this.state.queue.length,
+          cycles: this.state.metrics.cycles,
+        }));
+      } else if (req.url === '/metrics') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(this.state.metrics));
+      } else {
+        res.writeHead(404);
+        res.end('Not found');
+      }
+    });
+    this.healthServer.listen(port, () => {
+      console.log(`[health] Listening on :${port} (/healthz, /readyz, /metrics)`);
+    });
+  }
+
   async start() {
     await this.init();
     this.running = true;
     const interval = this.config.interval || 60000;
     console.log(`[manager] Starting event loop (${interval}ms interval)`);
+
+    this.startHealth();
 
     await this.runCycle();
     const timer = setInterval(() => {
@@ -154,10 +188,54 @@ export class Manager {
   }
 
   async stop() {
+    if (!this.running) return;
     this.running = false;
+    console.log('[manager] Shutting down — draining queue...');
     this.timers.forEach(t => clearInterval(t));
+    this.timers = [];
+
+    // Stop accepting new tasks
     for (const input of this.inputs) {
       await input.stop().catch(() => {});
+    }
+
+    // Drain remaining queued tasks (with timeout)
+    const drainTimeout = this.config.drainTimeout || 30000;
+    const deadline = Date.now() + drainTimeout;
+    let drained = 0;
+
+    while (this.state.queue.length > 0 && this.dispatcher && Date.now() < deadline) {
+      const task = this.state.dequeue();
+      if (!task) break;
+      try {
+        console.log(`[manager] Draining: ${task.summary || task.id}`);
+        const plan = await this.dispatcher.analyze(task);
+        const result = await this.dispatcher.dispatch(plan, this.config);
+        let verified = { passed: true, details: 'No verifier configured' };
+        for (const verifier of this.verifiers) {
+          verified = await verifier.verify(task, result);
+          if (!verified.passed) break;
+        }
+        this.state.complete(task.id, verified);
+        drained++;
+      } catch (err) {
+        this.state.complete(task.id, { passed: false, details: `Shutdown drain error: ${err.message}` });
+      }
+    }
+
+    // Re-queue anything we couldn't drain in time
+    const remaining = this.state.queue.length;
+    if (remaining > 0) {
+      console.log(`[manager] ${remaining} task(s) still queued — will resume on restart`);
+    }
+    if (drained > 0) {
+      console.log(`[manager] Drained ${drained} task(s) during shutdown`);
+    }
+
+    // Close health server
+    if (this.healthServer) {
+      await new Promise(r => this.healthServer.close(r));
+      this.healthServer = null;
     }
     console.log('[manager] Stopped');
   }
