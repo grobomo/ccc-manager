@@ -40,6 +40,8 @@ export class Manager {
     this.healthServer = null;
     this._configWatcher = null;
     this._reloadDebounce = null;
+    this._startedAt = Date.now();
+    this._lastReloadAt = null;
   }
 
   async _initComponents(section, getter, target) {
@@ -225,6 +227,12 @@ export class Manager {
             '# HELP ccc_queue_length Current queue depth',
             '# TYPE ccc_queue_length gauge',
             `ccc_queue_length ${this.state.queue.length}`,
+            '# HELP ccc_uptime_seconds Seconds since manager started',
+            '# TYPE ccc_uptime_seconds gauge',
+            `ccc_uptime_seconds ${Math.floor((Date.now() - this._startedAt) / 1000)}`,
+            '# HELP ccc_last_reload_timestamp_seconds Unix timestamp of last config reload',
+            '# TYPE ccc_last_reload_timestamp_seconds gauge',
+            `ccc_last_reload_timestamp_seconds ${this._lastReloadAt ? Math.floor(this._lastReloadAt / 1000) : 0}`,
             '',
           ];
           res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
@@ -253,6 +261,7 @@ export class Manager {
 
       if (Object.keys(changes).length === 0) return;
 
+      this._lastReloadAt = Date.now();
       this.log.info('Config reloaded', { changes });
 
       // Apply side effects
@@ -371,6 +380,10 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   const shutdown = () => manager.stop().then(() => process.exit(0));
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
+  // SIGHUP triggers config reload (K8s ConfigMap update pattern)
+  if (process.platform !== 'win32') {
+    process.on('SIGHUP', () => manager._reloadConfig());
+  }
   manager.start().catch(err => {
     console.error(`[manager] Fatal: ${err.message}`);
     process.exit(1);

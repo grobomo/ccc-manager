@@ -1,23 +1,23 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 10)
+## Session Handoff (2026-04-05, session 11)
 
 **What was done this session:**
-- T072: Updated rone-teams-poller.yaml to use claude dispatcher (PR #31)
-- T073: E2E integration test — bridge → claude dispatcher → local worker → verifier (PR #31)
-- T074: Fixed marketplace PR #76 Copilot review comments (pushed to PR branch)
-- T075-T077: K8s command injection fix, WebhookNotifier logger, ProcessMonitor truncation (PR #32)
-- T078-T079: CronMonitor (cron expressions), FileNotifier (disk results), v1.4.0 (PR #33)
-- 294 tests across 14 suites, 0 failures, 34 PRs merged
+- T080: Config hot-reload — fs.watch, debounced, swaps interval/maxRetries/dedupWindow/maxHistory (PR #34)
+- T081: File notifier wired into rone-teams-poller.yaml for bridge result consumption (PR #34)
+- T082: Prometheus /metrics text exposition format, JSON via Accept header (PR #34)
+- T083: Structured logger in all components (no more console.log in src/) (PR #35)
+- T084: ClaudeDispatcher shell injection fix — execFileSync with array args (PR #35)
+- 327 tests across 15 suites, 0 failures, 36 PRs merged
 
-**Current state:** v1.5.0 on main. 17 components, 327 tests across 15 suites, 35 PRs merged.
+**Current state:** v1.5.0 on main. 17 components, 327 tests across 15 suites, 36 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
-- Real integration with rone-teams-poller: test with actual RONE bridge files from K8s PVC
-- Config hot-reload — watch config file and reload without restart
-- Add rone-teams-poller.yaml file notifier for bridge result consumption
-- Consider metrics endpoint Prometheus format (/metrics in text exposition)
+- SIGHUP config reload — allow `kill -HUP` to trigger reload (K8s ConfigMap update pattern)
+- Uptime metric for Prometheus (ccc_uptime_seconds gauge)
+- Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
+- Dashboard config — Grafana JSON model for Prometheus metrics
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -121,6 +121,10 @@
 ## Phase 22: Code Review Hardening
 - [x] T083: Replace console.log/warn/error with structured logger in all components
 - [x] T084: ClaudeDispatcher — fix shell injection via execFileSync
+
+## Phase 23: Production Readiness
+- [x] T085: SIGHUP config reload — K8s ConfigMap update pattern
+- [x] T086: Uptime + last_reload Prometheus gauges
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

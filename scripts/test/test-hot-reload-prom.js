@@ -197,6 +197,8 @@ healthPort: 0
   assert(promText.includes('ccc_fixes_total 7'), 'Fixes value correct');
   assert(promText.includes('ccc_failures_total 3'), 'Failures value correct');
   assert(promText.includes('ccc_queue_length 0'), 'Queue length correct');
+  assert(promText.includes('ccc_uptime_seconds'), 'Has uptime gauge');
+  assert(promText.includes('ccc_last_reload_timestamp_seconds'), 'Has last_reload gauge');
 
   // Request JSON format
   const jsonRes = await fetch(`http://localhost:${port}/metrics`, {
@@ -222,6 +224,8 @@ console.log('7. Prometheus /metrics — HELP lines present...');
     '# HELP ccc_fixes_total',
     '# HELP ccc_failures_total',
     '# HELP ccc_queue_length',
+    '# HELP ccc_uptime_seconds',
+    '# HELP ccc_last_reload_timestamp_seconds',
   ];
 
   // Read index.js to verify all HELP lines exist in source
@@ -231,7 +235,34 @@ console.log('7. Prometheus /metrics — HELP lines present...');
   }
 }
 
-console.log('8. _watchConfig and cleanup...');
+console.log('8. Hot-reload tracks _lastReloadAt...');
+{
+  const tmpDir = resolve(ROOT, 'state', '_test_reload_ts');
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+  const tmpConfig = resolve(tmpDir, 'test-ts.yaml');
+
+  writeFileSync(tmpConfig, `name: test-ts
+interval: 5000
+`);
+
+  const { Manager } = await import('../../src/index.js');
+  const mgr = new Manager(tmpConfig);
+  assert(mgr._lastReloadAt === null, 'No reload yet');
+  assert(typeof mgr._startedAt === 'number', '_startedAt is set');
+
+  writeFileSync(tmpConfig, `name: test-ts
+interval: 10000
+`);
+
+  mgr._reloadConfig();
+  assert(mgr._lastReloadAt !== null, '_lastReloadAt set after reload');
+  assert(mgr._lastReloadAt >= mgr._startedAt, '_lastReloadAt >= _startedAt');
+
+  unlinkSync(tmpConfig);
+  rmSync(tmpDir, { recursive: true, force: true });
+}
+
+console.log('9. _watchConfig and cleanup...');
 {
   const tmpDir = resolve(ROOT, 'state', '_test_watch');
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
