@@ -99,8 +99,11 @@ export class Manager {
   }
 
   async _processTask(task) {
+    const maxRetries = this.config.maxRetries ?? 0;
+    task._retries = task._retries || 0;
+
     try {
-      console.log(`[dispatcher] Processing: ${task.summary || task.id}`);
+      console.log(`[dispatcher] Processing: ${task.summary || task.id}${task._retries > 0 ? ` (retry ${task._retries}/${maxRetries})` : ''}`);
       const plan = await this.dispatcher.analyze(task);
       const result = await this.dispatcher.dispatch(plan, this.config, this.workers);
 
@@ -110,10 +113,25 @@ export class Manager {
         if (!verified.passed) break;
       }
 
+      if (!verified.passed && task._retries < maxRetries) {
+        task._retries++;
+        console.log(`[manager] Task ${task.id}: FAILED — retrying (${task._retries}/${maxRetries})`);
+        task.status = 'queued';
+        this.state._save('queue.json', this.state.queue);
+        return;
+      }
+
       this.state.complete(task.id, verified);
       console.log(`[manager] Task ${task.id}: ${verified.passed ? 'FIXED' : 'FAILED'}`);
       await this._notify(task, verified);
     } catch (err) {
+      if (task._retries < maxRetries) {
+        task._retries++;
+        console.error(`[dispatcher] Error processing ${task.id}: ${err.message} — retrying (${task._retries}/${maxRetries})`);
+        task.status = 'queued';
+        this.state._save('queue.json', this.state.queue);
+        return;
+      }
       console.error(`[dispatcher] Error processing ${task.id}: ${err.message}`);
       const failResult = { passed: false, details: err.message };
       this.state.complete(task.id, failResult);
