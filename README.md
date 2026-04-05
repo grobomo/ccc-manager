@@ -108,15 +108,27 @@ maxRetries: 2
 
 ## Kubernetes Deployment
 
-```bash
-# Deploy with Kustomize
-kubectl apply -k k8s/
+### Helm (recommended)
 
-# Or individual manifests
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/pvc.yaml
-kubectl apply -f k8s/networkpolicy.yaml
+```bash
+# Install with default values
+helm install ccc helm/ccc-manager/
+
+# Install with custom config
+helm install ccc helm/ccc-manager/ -f my-values.yaml
+
+# Override individual values
+helm install ccc helm/ccc-manager/ \
+  --set image.repository=my-registry/ccc-manager \
+  --set image.tag=v1.14.0 \
+  --set persistence.storageClassName=gp3 \
+  --set serviceMonitor.enabled=true
+```
+
+### Kustomize
+
+```bash
+kubectl apply -k k8s/
 ```
 
 Includes: Deployment with security context (non-root, read-only root filesystem, dropped capabilities), PVC for state persistence, NetworkPolicy for traffic restriction, ServiceMonitor for Prometheus.
@@ -182,7 +194,7 @@ The plugin file should export a class extending the appropriate base class from 
 ## Testing
 
 ```bash
-npm test    # 16 suites, 395 tests
+npm test    # 17 suites, 444 tests
 ```
 
 ## License

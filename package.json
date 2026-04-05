@@ -1,6 +1,6 @@
 {
   "name": "ccc-manager",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "description": "Universal CCC fleet manager — monitors health, accepts input, dispatches fixes via SHTD pipeline",
   "type": "module",
   "main": "src/index.js",
@@ -46,6 +46,7 @@
     "config/example.yaml",
     "config/grafana-dashboard.json",
     "k8s/",
+    "helm/",
     "Dockerfile",
     "scripts/demo.js",
     "scripts/healthcheck.js"

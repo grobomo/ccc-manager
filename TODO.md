@@ -1,20 +1,18 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 21)
+## Session Handoff (2026-04-05, session 22)
 
 **What was done this session:**
-- T130-T134: Multi-instance support — isolated state, labeled metrics, MultiManager, shared health (PR #60)
-- T136-T138: DRY MultiManager.start(), README multi-instance docs, v1.13.0 (PR #62)
-- Code review: all components clean, no security issues, DRY applied
+- Full code review of all 22 source files — clean, secure, well-structured
+- T139-T142: Helm chart (7 templates), RONE values overlay, chart test suite, v1.14.0
+- 17 suites, 444 tests, 0 failures
 
-**Current state:** v1.13.0 on main. 17 components, 395 tests across 16 suites, 62 PRs merged.
+**Current state:** v1.14.0 on branch 063-T139-helm-chart. 17 components, 444 tests across 17 suites.
 **All CI green:** Tests (Node 18/20/22) + Secret Scan pass on GitHub Actions.
-**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
 
 **Next priorities (zoom out):**
-- Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
+- Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Consider: Helm chart for easier deployment (currently raw K8s manifests + Kustomize)
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -211,6 +209,12 @@
 - [x] T136: DRY — MultiManager.start() delegates to Manager.start() instead of duplicating logic
 - [x] T137: README — document multi-instance CLI usage, MultiManager API
 - [x] T138: Version bump to v1.13.0, GitHub release
+
+## Phase 42: Helm Chart & Deployment
+- [x] T139: Helm chart — template all K8s manifests with configurable values
+- [x] T140: RONE values overlay — values-rone.yaml for hackathon-teams-poller deployment
+- [x] T141: Helm chart test — validate templates render correctly with default and RONE values
+- [x] T142: Version bump to v1.14.0, update package.json files array, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

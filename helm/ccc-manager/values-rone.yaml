@@ -1,0 +1,65 @@
+# Helm values overlay for RONE hackathon-teams-poller deployment
+# Usage: helm install ccc-rone helm/ccc-manager -f helm/values-rone.yaml -n hackathon-teams-poller
+
+image:
+  repository: ccc-manager
+  tag: "1.13.0"
+
+healthPort: 8081
+
+networkPolicy:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+bridge:
+  enabled: true
+  existingClaim: rone-bridge-data  # Shared PVC with teams-poller pod
+
+projectConfig: |
+  name: rone-teams-poller
+  interval: 30000
+  healthPort: 8081
+
+  monitors:
+    pod-health:
+      type: process
+      command: kubectl get pods -n hackathon-teams-poller --no-headers | grep -v Running
+      interval: 30000
+
+  inputs:
+    rone-bridge:
+      type: bridge
+      path: /app/bridge/pending
+      completedDir: /app/bridge/done
+    self-repair-issues:
+      type: github
+      repo: grobomo/rone-teams-poller
+      label: self-repair
+
+  dispatcher:
+    type: claude
+    timeout: 60000
+    projectDir: /app
+
+  verifiers:
+    tests:
+      type: test-suite
+      command: kubectl exec deploy/teams-poller -n hackathon-teams-poller -- node test/health.js
+
+  maxRetries: 2
+
+  workers:
+    default:
+      type: k8s
+      namespace: hackathon-teams-poller
+      pod: teams-poller-0
+      container: ccc-worker
+
+  notifiers:
+    bridge-results:
+      type: file
+      dir: /app/bridge/results
+      prefix: repair
