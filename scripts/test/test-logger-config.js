@@ -236,6 +236,16 @@ test('--validate with invalid config exits 1', () => {
   rmSync(badPath, { force: true });
 });
 
+test('--list-components shows all component types', () => {
+  const out = execFileSync('node', [CLI, '--list-components'], { encoding: 'utf-8' });
+  assert.ok(out.includes('Monitors:'));
+  assert.ok(out.includes('process'));
+  assert.ok(out.includes('Inputs:'));
+  assert.ok(out.includes('bridge'));
+  assert.ok(out.includes('Workers:'));
+  assert.ok(out.includes('k8s'));
+});
+
 test('No args prints usage and exits 1', () => {
   try {
     execFileSync('node', [CLI], { encoding: 'utf-8' });

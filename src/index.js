@@ -383,9 +383,10 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
 Usage: ccc-manager <config.yaml> [options]
 
 Options:
-  --validate   Validate config and exit (no start)
-  --version    Print version and exit
-  --help       Show this help`);
+  --validate        Validate config and exit (no start)
+  --list-components List available component types
+  --version         Print version and exit
+  --help            Show this help`);
     process.exit(0);
   }
 
@@ -393,6 +394,23 @@ Options:
     const { readFileSync } = await import('node:fs');
     const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'));
     console.log(pkg.version);
+    process.exit(0);
+  }
+
+  if (flags.has('--list-components')) {
+    const reg = new Registry();
+    registerBuiltins(reg);
+    const sections = [
+      ['Monitors', reg.listMonitors()],
+      ['Inputs', reg.listInputs()],
+      ['Dispatchers', reg.listDispatchers()],
+      ['Verifiers', reg.listVerifiers()],
+      ['Workers', reg.listWorkers()],
+      ['Notifiers', reg.listNotifiers()],
+    ];
+    for (const [label, types] of sections) {
+      console.log(`${label}: ${types.join(', ')}`);
+    }
     process.exit(0);
   }
 
