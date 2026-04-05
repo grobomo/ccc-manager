@@ -233,6 +233,10 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T144: Event-driven bridge — fs.watch for instant task pickup instead of polling interval
 - [x] T145: Version bump to v1.15.0, GitHub release
 
+## Phase 44: Code Review & Hardening
+- [ ] T153: Security — sanitize bridge writeResult requestId (path traversal), update component table
+- [ ] T154: Version bump to v1.16.0, GitHub release
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
