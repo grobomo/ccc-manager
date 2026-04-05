@@ -194,7 +194,7 @@ export class Manager {
   }
 
   startHealth() {
-    const port = this.config.healthPort || 8080;
+    const port = this.config.healthPort ?? 8080;
     this.healthServer = createServer((req, res) => {
       if (req.url === '/healthz' || req.url === '/livez') {
         res.writeHead(this.running ? 200 : 503);
