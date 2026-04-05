@@ -65,6 +65,10 @@
 - [x] T056: WebhookInput — add body size limit (1MB) and timing-safe HMAC comparison
 - [x] T057: Update component counts, bump version to 1.1.0
 
+## Phase 13: Polish & Integration
+- [x] T058: DRY init() — extract _initComponents helper (30 lines → 10)
+- [x] T059: Add webhook, notifier, worker, retry config examples
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

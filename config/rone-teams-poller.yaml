@@ -25,9 +25,17 @@ verifiers:
     type: test-suite
     command: kubectl exec deploy/teams-poller -n hackathon-teams-poller -- node test/health.js
 
+maxRetries: 2
+
 workers:
   default:
     type: k8s
     namespace: hackathon-teams-poller
     pod: teams-poller-0
     container: ccc-worker
+
+# notifiers:
+#   teams:
+#     type: webhook
+#     url: https://outlook.office.com/webhook/...
+#     format: teams
