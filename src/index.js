@@ -30,68 +30,33 @@ export class Manager {
     this.healthServer = null;
   }
 
+  _initComponents(section, getter, target) {
+    const entries = this.config[section];
+    if (!entries) return;
+    for (const [name, cfg] of Object.entries(entries)) {
+      const Cls = getter(cfg.type || name);
+      if (Cls) {
+        if (Array.isArray(target)) target.push(new Cls(name, cfg));
+        else target[name] = new Cls(cfg); // workers use object map, no name arg
+      } else {
+        console.warn(`[manager] Unknown ${section} type: ${cfg.type || name}`);
+      }
+    }
+  }
+
   async init() {
     registerBuiltins(this.registry);
 
-    if (this.config.monitors) {
-      for (const [name, cfg] of Object.entries(this.config.monitors)) {
-        const MonitorClass = this.registry.getMonitor(cfg.type || name);
-        if (MonitorClass) {
-          this.monitors.push(new MonitorClass(name, cfg));
-        } else {
-          console.warn(`[manager] Unknown monitor type: ${cfg.type || name}`);
-        }
-      }
-    }
-
-    if (this.config.inputs) {
-      for (const [name, cfg] of Object.entries(this.config.inputs)) {
-        const InputClass = this.registry.getInput(cfg.type || name);
-        if (InputClass) {
-          this.inputs.push(new InputClass(name, cfg));
-        } else {
-          console.warn(`[manager] Unknown input type: ${cfg.type || name}`);
-        }
-      }
-    }
+    this._initComponents('monitors', t => this.registry.getMonitor(t), this.monitors);
+    this._initComponents('inputs', t => this.registry.getInput(t), this.inputs);
+    this._initComponents('verifiers', t => this.registry.getVerifier(t), this.verifiers);
+    this._initComponents('workers', t => this.registry.getWorker(t), this.workers);
+    this._initComponents('notifiers', t => this.registry.getNotifier(t), this.notifiers);
 
     const dispType = this.config.dispatcher?.type || 'shtd';
     const DispatcherClass = this.registry.getDispatcher(dispType);
     if (DispatcherClass) {
       this.dispatcher = new DispatcherClass(this.config.dispatcher || {});
-    }
-
-    if (this.config.verifiers) {
-      for (const [name, cfg] of Object.entries(this.config.verifiers)) {
-        const VerifierClass = this.registry.getVerifier(cfg.type || name);
-        if (VerifierClass) {
-          this.verifiers.push(new VerifierClass(name, cfg));
-        } else {
-          console.warn(`[manager] Unknown verifier type: ${cfg.type || name}`);
-        }
-      }
-    }
-
-    if (this.config.workers) {
-      for (const [name, cfg] of Object.entries(this.config.workers)) {
-        const WorkerClass = this.registry.getWorker(cfg.type || name);
-        if (WorkerClass) {
-          this.workers[name] = new WorkerClass(cfg);
-        } else {
-          console.warn(`[manager] Unknown worker type: ${cfg.type || name}`);
-        }
-      }
-    }
-
-    if (this.config.notifiers) {
-      for (const [name, cfg] of Object.entries(this.config.notifiers)) {
-        const NotifierClass = this.registry.getNotifier(cfg.type || name);
-        if (NotifierClass) {
-          this.notifiers.push(new NotifierClass(name, cfg));
-        } else {
-          console.warn(`[manager] Unknown notifier type: ${cfg.type || name}`);
-        }
-      }
     }
 
     const workerCount = Object.keys(this.workers).length;

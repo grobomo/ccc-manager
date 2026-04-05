@@ -28,8 +28,33 @@ verifiers:
   #   type: test-suite
   #   command: npm test
 
-# Alert destinations
-alerts:
+# Workers execute tasks
+workers:
+  # default:
+  #   type: local
+  #   timeout: 120000
+  # k8s-worker:
+  #   type: k8s
+  #   namespace: my-namespace
+  #   pod: worker-pod
+  #   container: main
+
+# Notifiers post results to external services
+notifiers:
   # teams:
-  #   type: teams
-  #   webhook: https://...
+  #   type: webhook
+  #   url: https://outlook.office.com/webhook/...
+  #   format: teams
+  # slack:
+  #   type: webhook
+  #   url: https://hooks.slack.com/services/...
+  #   format: slack
+
+# Retry failed tasks N times before marking as failed (default: 0)
+# maxRetries: 2
+
+# Health endpoint port (default: 8080)
+# healthPort: 8080
+
+# Queue drain timeout on shutdown in ms (default: 30000)
+# drainTimeout: 30000
