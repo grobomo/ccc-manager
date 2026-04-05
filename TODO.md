@@ -54,6 +54,13 @@
 - [x] T049: Register workers in builtins, wire workers into Manager.init
 - [x] T050: Registry.registerWorker + getWorker support
 
+## Phase 11: Next Value
+- [ ] T051: Publish to emu marketplace (share with team)
+- [x] T052: Wire SHTDDispatcher to actually use workers for task execution
+- [ ] T053: Add webhook input (HTTP POST → task queue) for external CI/CD triggers
+- [ ] T054: Notification output — post results to Teams/Slack via webhook
+- [ ] T055: Add retry logic — failed tasks retry N times before marking as failed
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

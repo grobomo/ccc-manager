@@ -75,8 +75,22 @@ async function main() {
   });
   assert(failTaskResult.success === false, 'LocalWorker reports failure for bad exit code');
 
-  // 4. Test registration
-  console.log('\n4. Testing registration...');
+  // 4. Test dispatch with worker integration
+  console.log('\n4. Testing dispatch → worker wiring...');
+  const dispResult = await dispatcher.dispatch(plan, { dispatcher: { worker: 'default' } }, { default: worker });
+  assert(dispResult.planId === plan.spec.id, 'Dispatch result has planId');
+  assert(dispResult.taskCount === plan.tasks.length, `Dispatch handled ${dispResult.taskCount} tasks`);
+  assert(dispResult.status === 'completed' || dispResult.status === 'partial', `Dispatch status: ${dispResult.status}`);
+  assert(Array.isArray(dispResult.results), 'Dispatch has results array');
+  assert(dispResult.results.length === plan.tasks.length, 'Result per task');
+
+  // Test dispatch with no workers (graceful fallback)
+  const noWorkerResult = await dispatcher.dispatch(plan, {}, {});
+  assert(noWorkerResult.status === 'completed', 'No-worker dispatch completes gracefully');
+  assert(noWorkerResult.results[0].skipped === true, 'Tasks marked as skipped without worker');
+
+  // 5. Test registration
+  console.log('\n5. Testing registration...');
   const { Registry } = await import('../../src/registry.js');
   const { registerBuiltins } = await import('../../src/builtins.js');
   const reg = new Registry();

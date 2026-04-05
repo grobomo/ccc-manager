@@ -45,8 +45,8 @@ export class Dispatcher {
     throw new Error('analyze() not implemented');
   }
 
-  // Distribute a single task to a worker
-  async dispatch(task, worker) {
+  // Execute plan tasks via workers. Returns aggregated result.
+  async dispatch(plan, config, workers) {
     throw new Error('dispatch() not implemented');
   }
 }

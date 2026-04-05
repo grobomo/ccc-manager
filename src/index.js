@@ -90,7 +90,7 @@ export class Manager {
     try {
       console.log(`[dispatcher] Processing: ${task.summary || task.id}`);
       const plan = await this.dispatcher.analyze(task);
-      const result = await this.dispatcher.dispatch(plan, this.config);
+      const result = await this.dispatcher.dispatch(plan, this.config, this.workers);
 
       let verified = { passed: true, details: 'No verifier configured' };
       for (const verifier of this.verifiers) {
