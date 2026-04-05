@@ -11,7 +11,13 @@
 - T092: Version bump to v1.6.0 (PR #39)
 - Full code review of all 23 source files — no remaining issues
 
-**Current state:** v1.6.0 on main. 17 components, 343 tests across 15 suites, 40 PRs merged.
+**Current state:** v1.6.0 on main. 17 components, 350 tests across 15 suites, 41 PRs merged. GitHub release published.
+**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
+
+**Next priorities (zoom out):**
+- Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
+- Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge input
+- Consider: multi-instance support (one manager per project, shared Prometheus endpoint)
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
@@ -138,6 +144,11 @@
 
 ## Phase 26: Packaging
 - [x] T092: Version bump to v1.6.0, include Grafana dashboard in package files
+- [x] T093: GitHub release v1.6.0 with changelog
+- [x] T094: Docker image build verification (Dockerfile valid, smoke test passes)
+
+## Phase 27: CLI Polish
+- [x] T095: CLI flags — --help, --version, --validate for ops deployment scripts
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

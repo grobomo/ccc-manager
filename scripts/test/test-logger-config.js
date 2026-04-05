@@ -189,6 +189,63 @@ test('loadConfig accepts valid config', () => {
   assert.equal(config.name, 'test');
 });
 
+// --- CLI flags ---
+console.log('4. CLI flags...');
+
+import { execFileSync } from 'node:child_process';
+const CLI = resolve(ROOT, 'src/index.js');
+
+test('--help prints usage and exits 0', () => {
+  const out = execFileSync('node', [CLI, '--help'], { encoding: 'utf-8' });
+  assert.ok(out.includes('Usage:'));
+  assert.ok(out.includes('--validate'));
+  assert.ok(out.includes('ccc-manager v'));
+});
+
+test('-h is alias for --help', () => {
+  const out = execFileSync('node', [CLI, '-h'], { encoding: 'utf-8' });
+  assert.ok(out.includes('Usage:'));
+});
+
+test('--version prints semver and exits 0', () => {
+  const out = execFileSync('node', [CLI, '--version'], { encoding: 'utf-8' }).trim();
+  assert.ok(/^\d+\.\d+\.\d+$/.test(out), `Got: ${out}`);
+});
+
+test('-v is alias for --version', () => {
+  const out = execFileSync('node', [CLI, '-v'], { encoding: 'utf-8' }).trim();
+  assert.ok(/^\d+\.\d+\.\d+$/.test(out));
+});
+
+test('--validate with valid config prints OK', () => {
+  const out = execFileSync('node', [CLI, '--validate', resolve(ROOT, 'config/example.yaml')], { encoding: 'utf-8' });
+  assert.ok(out.includes('Config OK'));
+});
+
+test('--validate with invalid config exits 1', () => {
+  const badPath = resolve(TMP || ROOT, 'state', '_test_cli_bad.yaml');
+  mkdirSync(dirname(badPath), { recursive: true });
+  writeFileSync(badPath, 'interval: 100\n');
+  try {
+    execFileSync('node', [CLI, '--validate', badPath], { encoding: 'utf-8' });
+    assert.fail('Should have exited with code 1');
+  } catch (err) {
+    assert.ok(err.status === 1);
+    assert.ok(err.stderr.includes('validation failed') || err.stdout.includes('validation failed'));
+  }
+  rmSync(badPath, { force: true });
+});
+
+test('No args prints usage and exits 1', () => {
+  try {
+    execFileSync('node', [CLI], { encoding: 'utf-8' });
+    assert.fail('Should have exited with code 1');
+  } catch (err) {
+    assert.ok(err.status === 1);
+    assert.ok(err.stderr.includes('Usage:'));
+  }
+});
+
 // Cleanup
 if (existsSync(TMP)) rmSync(TMP, { recursive: true });
 
