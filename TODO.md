@@ -1,19 +1,20 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 26)
+## Session Handoff (2026-04-05, session 27)
 
 **What was done this session:**
-- T155-T157: Code review of all 26 source files, DRY exec-helper, logger undefined filter, SQS listen resilience, v1.17.0 (PR #67)
-- T158-T160: exec-helper unit tests (18), logger JSON undefined fix, 7 new logger tests, v1.18.0 (PR #68)
-- T161-T162: README update (component table 17→20, test counts 476→581), v1.19.0
+- T161-T162: README docs polish (component count 17→20, test counts 476→581), v1.19.0 (PR #69)
+- T167-T169: Config env var interpolation (${VAR} and ${VAR:-default}), v1.21.0 (PR #70)
+- T170-T173: Worker task claims — file-based claim/release/isClaimed with expiry, v1.23.0 (PR #71)
+- Ran two Claude tabs simultaneously on same repo — observed collisions, designed claim system to fix it
 
-**Current state:** v1.19.0 on main. 20 components, 21 suites, 581 tests. All CI green.
-**All tasks through T162 complete.**
+**Current state:** v1.23.0 on main. 20 components, 22 suites, 607 tests. All CI green.
+**All tasks through T173 complete.**
 
 **Next priorities:**
+- README: document workerId, claimTimeout, env var interpolation config
 - Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Consider: metrics dashboard for real deployment, alerting rules, runbook documentation
 
 ## Needed by ep-incident-response (cross-project blocker)
 EP incident response project needs a reusable dispatcher/distribution framework for parallel V1 analysis.

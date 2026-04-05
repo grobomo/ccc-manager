@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.24.0 (2026-04-05)
+- README: document workerId, claimTimeout, env var interpolation, multi-worker coordination
+- Updated test counts (22 suites, 607 tests) and Helm tag (v1.23.0)
+
 ## v1.23.0 (2026-04-05)
 - Worker task claims: file-based claim/release/isClaimed with automatic expiry
 - Multi-worker coordination: dequeue() skips tasks claimed by other workers
