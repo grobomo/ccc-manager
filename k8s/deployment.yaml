@@ -72,4 +72,6 @@ spec:
         - name: bridge
           emptyDir: {}
         - name: state
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: ccc-manager-state
+          # Alternative: emptyDir: {} (state lost on pod restart)
