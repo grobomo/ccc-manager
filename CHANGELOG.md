@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.12.0 (2026-04-05)
+- Multi-instance support: run multiple configs from one process
+- Per-instance state isolation (`state/<name>/` directories)
+- Instance-labeled Prometheus metrics (`{instance="name"}` labels)
+- `MultiManager` class with shared health endpoint (aggregated /healthz, /readyz, /metrics)
+- CLI accepts multiple config files: `ccc-manager a.yaml b.yaml`
+- `--health-port` flag for shared health endpoint port
+- `--status` shows per-instance state when subdirs exist
+- 36 new multi-instance tests (16 suites, 395 tests total)
+
 ## v1.11.0 (2026-04-05)
 - GitHub Actions test CI (Node 18/20/22 matrix)
 - README.md with quickstart, architecture, component table

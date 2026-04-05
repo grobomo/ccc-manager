@@ -23,7 +23,7 @@ async function main() {
 
   const tmpDir = resolve(ROOT, 'state', '_test_pipeline');
   const bridgeDir = resolve(tmpDir, 'bridge');
-  const stateDir = resolve(ROOT, 'state');
+  const stateDir = resolve(ROOT, 'state', 'pipeline-test');
   const configPath = resolve(tmpDir, 'test-config.yaml');
 
   // Clean
