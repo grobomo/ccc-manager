@@ -2,6 +2,7 @@
 // Config: { url, format: 'teams'|'slack'|'json' }
 
 import { Notifier } from '../base.js';
+import { createLogger } from '../logger.js';
 
 export class WebhookNotifier extends Notifier {
   constructor(name, config) {
@@ -9,6 +10,7 @@ export class WebhookNotifier extends Notifier {
     this.url = config.url;
     if (!this.url) throw new Error('WebhookNotifier requires config.url');
     this.format = config.format || 'json';
+    this.log = createLogger(`notify:${name}`);
   }
 
   async notify(task, result) {
@@ -20,11 +22,11 @@ export class WebhookNotifier extends Notifier {
         body: JSON.stringify(body)
       });
       if (!res.ok) {
-        console.error(`[notify:${this.name}] HTTP ${res.status}: ${await res.text()}`);
+        this.log.error('HTTP error', { status: res.status });
       }
       return { sent: res.ok, status: res.status };
     } catch (err) {
-      console.error(`[notify:${this.name}] Error: ${err.message}`);
+      this.log.error('Error', { error: err.message });
       return { sent: false, error: err.message };
     }
   }

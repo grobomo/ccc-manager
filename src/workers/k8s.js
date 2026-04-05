@@ -17,7 +17,8 @@ export class K8sWorker extends Worker {
     const parts = [this.kubectlPath, 'exec'];
     if (this.namespace) parts.push('-n', this.namespace);
     if (this.container) parts.push('-c', this.container);
-    parts.push(this.pod, '--', task.command);
+    // Use sh -c with JSON-quoted command to prevent shell injection
+    parts.push(this.pod, '--', 'sh', '-c', JSON.stringify(task.command));
     return parts.join(' ');
   }
 
