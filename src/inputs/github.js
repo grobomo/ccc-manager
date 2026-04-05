@@ -1,7 +1,7 @@
 // GitHubInput — poll GitHub issues with a specific label.
 // Uses gh CLI (no npm dependency).
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { Input } from '../base.js';
 import { createLogger } from '../logger.js';
 
@@ -31,10 +31,13 @@ export class GitHubInput extends Input {
 
   async poll() {
     try {
-      const output = execSync(
-        `gh issue list --repo ${JSON.stringify(this.repo)} --label ${JSON.stringify(this.label)} --state open --json number,title,body,labels`,
-        { stdio: 'pipe', timeout: 30000 }
-      ).toString();
+      const output = execFileSync('gh', [
+        'issue', 'list',
+        '--repo', this.repo,
+        '--label', this.label,
+        '--state', 'open',
+        '--json', 'number,title,body,labels'
+      ], { stdio: 'pipe', timeout: 30000 }).toString();
 
       const issues = JSON.parse(output || '[]');
       const parsed = this._parseIssues(issues);

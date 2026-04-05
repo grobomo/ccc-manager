@@ -161,6 +161,7 @@
 - [x] T102: CLI --status flag — read state/ directory, print queue/metrics without starting
 - [x] T103: Fix --status requiring config arg — move before configPath check
 - [x] T104: Version bump to v1.8.0, GitHub release
+- [x] T105: GitHubInput execFileSync — eliminate shell injection vector in gh CLI call
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
