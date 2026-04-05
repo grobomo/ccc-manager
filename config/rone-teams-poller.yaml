@@ -36,7 +36,11 @@ workers:
     pod: teams-poller-0
     container: ccc-worker
 
-# notifiers:
+notifiers:
+  bridge-results:
+    type: file
+    dir: /data/rone-bridge/results
+    prefix: repair
 #   teams:
 #     type: webhook
 #     url: https://outlook.office.com/webhook/...

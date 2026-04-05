@@ -1,20 +1,23 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 9)
+## Session Handoff (2026-04-05, session 10)
 
 **What was done this session:**
-- T072: Updated rone-teams-poller.yaml to use claude dispatcher
-- T073: E2E integration test — bridge → claude dispatcher (fallback) → local worker → verifier (19 tests)
-- T074: Fixed marketplace PR #76 Copilot review comments (SKILL.md frontmatter, counts)
-- 271 tests across 13 suites, 0 failures, 32 PRs merged
+- T072: Updated rone-teams-poller.yaml to use claude dispatcher (PR #31)
+- T073: E2E integration test — bridge → claude dispatcher → local worker → verifier (PR #31)
+- T074: Fixed marketplace PR #76 Copilot review comments (pushed to PR branch)
+- T075-T077: K8s command injection fix, WebhookNotifier logger, ProcessMonitor truncation (PR #32)
+- T078-T079: CronMonitor (cron expressions), FileNotifier (disk results), v1.4.0 (PR #33)
+- 294 tests across 14 suites, 0 failures, 34 PRs merged
 
-**Current state:** v1.4.0 on main. 17 components, 294 tests across 14 suites, 34 PRs merged.
+**Current state:** v1.5.0 on main. 17 components, 327 tests across 15 suites, 35 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
-- Consider a `cron` monitor type for scheduled health checks vs fixed interval
-- Add a `file` notifier (write results to disk for bridge consumption)
 - Real integration with rone-teams-poller: test with actual RONE bridge files from K8s PVC
+- Config hot-reload — watch config file and reload without restart
+- Add rone-teams-poller.yaml file notifier for bridge result consumption
+- Consider metrics endpoint Prometheus format (/metrics in text exposition)
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -109,6 +112,11 @@
 ## Phase 20: Extended Components
 - [x] T078: Cron monitor — run checks on independent schedule (cron expression)
 - [x] T079: File notifier — write results to disk for bridge consumption
+
+## Phase 21: Runtime Polish
+- [x] T080: Config hot-reload — watch config file, swap interval/maxRetries/dedupWindow at runtime
+- [x] T081: Wire file notifier into rone-teams-poller.yaml for bridge result consumption
+- [x] T082: Prometheus /metrics — text exposition format for K8s scraping
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

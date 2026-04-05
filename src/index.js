@@ -6,6 +6,7 @@
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
+import { watch } from 'node:fs';
 import { loadConfig } from './config.js';
 import { State } from './state.js';
 import { Registry } from './registry.js';
@@ -15,9 +16,13 @@ import { createLogger } from './logger.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
+// Hot-reloadable config fields (changed at runtime without restart)
+const HOT_RELOAD_FIELDS = ['interval', 'maxRetries', 'dedupWindow', 'maxHistory', 'drainTimeout'];
+
 export class Manager {
   constructor(configPath) {
-    this.config = loadConfig(configPath);
+    this.configPath = resolve(configPath);
+    this.config = loadConfig(this.configPath);
     this.log = createLogger('manager', { json: this.config.logFormat === 'json' });
     this.state = new State(resolve(ROOT, 'state'), {
       dedupWindow: this.config.dedupWindow,
@@ -33,6 +38,8 @@ export class Manager {
     this.running = false;
     this.timers = [];
     this.healthServer = null;
+    this._configWatcher = null;
+    this._reloadDebounce = null;
   }
 
   async _initComponents(section, getter, target) {
@@ -195,8 +202,34 @@ export class Manager {
           cycles: this.state.metrics.cycles,
         }));
       } else if (req.url === '/metrics') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(this.state.metrics));
+        const m = this.state.metrics;
+        const accept = req.headers.accept || '';
+        if (accept.includes('application/json')) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(m));
+        } else {
+          // Prometheus text exposition format
+          const lines = [
+            '# HELP ccc_cycles_total Total run cycles completed',
+            '# TYPE ccc_cycles_total counter',
+            `ccc_cycles_total ${m.cycles || 0}`,
+            '# HELP ccc_issues_total Total issues detected',
+            '# TYPE ccc_issues_total counter',
+            `ccc_issues_total ${m.issues || 0}`,
+            '# HELP ccc_fixes_total Total fixes applied',
+            '# TYPE ccc_fixes_total counter',
+            `ccc_fixes_total ${m.fixes || 0}`,
+            '# HELP ccc_failures_total Total failures',
+            '# TYPE ccc_failures_total counter',
+            `ccc_failures_total ${m.failures || 0}`,
+            '# HELP ccc_queue_length Current queue depth',
+            '# TYPE ccc_queue_length gauge',
+            `ccc_queue_length ${this.state.queue.length}`,
+            '',
+          ];
+          res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
+          res.end(lines.join('\n'));
+        }
       } else {
         res.writeHead(404);
         res.end('Not found');
@@ -207,6 +240,52 @@ export class Manager {
     });
   }
 
+  _reloadConfig() {
+    try {
+      const newConfig = loadConfig(this.configPath);
+      const changes = {};
+      for (const field of HOT_RELOAD_FIELDS) {
+        if (newConfig[field] !== undefined && newConfig[field] !== this.config[field]) {
+          changes[field] = { from: this.config[field], to: newConfig[field] };
+          this.config[field] = newConfig[field];
+        }
+      }
+
+      if (Object.keys(changes).length === 0) return;
+
+      this.log.info('Config reloaded', { changes });
+
+      // Apply side effects
+      if (changes.interval) {
+        this.timers.forEach(t => clearInterval(t));
+        this.timers = [];
+        const timer = setInterval(() => {
+          if (this.running) this.runCycle().catch(err => this.log.error('Cycle error', { error: err.message }));
+        }, this.config.interval);
+        this.timers.push(timer);
+      }
+      if (changes.dedupWindow) this.state.dedupWindow = this.config.dedupWindow;
+      if (changes.maxHistory) this.state.maxHistory = this.config.maxHistory;
+    } catch (err) {
+      this.log.error('Config reload failed — keeping current config', { error: err.message });
+    }
+  }
+
+  _watchConfig() {
+    try {
+      this._configWatcher = watch(this.configPath, (eventType) => {
+        if (eventType !== 'change') return;
+        // Debounce: editors often write multiple times
+        clearTimeout(this._reloadDebounce);
+        this._reloadDebounce = setTimeout(() => this._reloadConfig(), 500);
+      });
+      this._configWatcher.on('error', () => {}); // Ignore watch errors (file moved, etc.)
+      this.log.info('Watching config for hot-reload', { path: this.configPath });
+    } catch {
+      this.log.warn('Could not watch config file — hot-reload disabled');
+    }
+  }
+
   async start() {
     await this.init();
     this.running = true;
@@ -214,6 +293,7 @@ export class Manager {
     this.log.info('Starting event loop', { interval });
 
     this.startHealth();
+    this._watchConfig();
 
     await this.runCycle();
     const timer = setInterval(() => {
@@ -263,6 +343,13 @@ export class Manager {
     if (drained > 0) {
       this.log.info('Drained tasks during shutdown', { drained });
     }
+
+    // Close config watcher
+    if (this._configWatcher) {
+      this._configWatcher.close();
+      this._configWatcher = null;
+    }
+    clearTimeout(this._reloadDebounce);
 
     // Close health server
     if (this.healthServer) {
