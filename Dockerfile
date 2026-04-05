@@ -9,8 +9,8 @@ RUN groupadd -r ccc && useradd -r -g ccc -d /app ccc \
 
 COPY --chown=ccc:ccc package.json ./
 COPY --chown=ccc:ccc src/ ./src/
-COPY --chown=ccc:ccc config/ ./config/
-COPY --chown=ccc:ccc scripts/ ./scripts/
+COPY --chown=ccc:ccc config/example.yaml config/grafana-dashboard.json ./config/
+COPY --chown=ccc:ccc scripts/demo.js scripts/healthcheck.js ./scripts/
 
 # No npm install needed — zero dependencies
 

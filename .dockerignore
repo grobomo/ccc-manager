@@ -1,0 +1,9 @@
+.git
+.github
+.claude
+.test-results
+state/
+scripts/test/
+k8s/
+node_modules/
+*.md

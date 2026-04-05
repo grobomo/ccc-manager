@@ -16,6 +16,10 @@ inputs:
     type: bridge
     path: /data/rone-bridge/requests/pending
     completedDir: /data/rone-bridge/requests/completed
+  self-repair-issues:
+    type: github
+    repo: grobomo/rone-teams-poller
+    label: self-repair
 
 dispatcher:
   type: claude

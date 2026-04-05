@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.10.0 (2026-04-05)
+- Dockerfile: only include example config, not project-specific files
+- `.dockerignore` for leaner images
+- `npm run healthcheck` and `npm run validate` scripts
+- Test runner shows suite names in output
+- CHANGELOG.md added
+
 ## v1.9.0 (2026-04-05)
 - Test suite reliability: all 15 suites exit cleanly on Windows (libuv drain fix)
 - Test runner: distinguish real test failures from process crashes
