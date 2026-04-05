@@ -1,15 +1,46 @@
 {
   "name": "ccc-manager",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Universal CCC fleet manager — monitors health, accepts input, dispatches fixes via SHTD pipeline",
   "type": "module",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./config": "./src/config.js",
+    "./state": "./src/state.js",
+    "./registry": "./src/registry.js",
+    "./base": "./src/base.js",
+    "./builtins": "./src/builtins.js"
+  },
+  "bin": {
+    "ccc-manager": "src/index.js"
+  },
   "scripts": {
     "start": "node src/index.js",
     "test": "node scripts/test/run-all.js",
     "demo": "node scripts/demo.js"
   },
+  "keywords": [
+    "ccc",
+    "fleet-manager",
+    "self-healing",
+    "monitor",
+    "dispatcher",
+    "k8s",
+    "ec2",
+    "shtd"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grobomo/ccc-manager.git"
+  },
+  "license": "MIT",
   "engines": {
     "node": ">=18"
-  }
+  },
+  "files": [
+    "src/",
+    "config/example.yaml",
+    "scripts/demo.js"
+  ]
 }

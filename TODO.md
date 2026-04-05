@@ -1,16 +1,18 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 2)
+## Session Handoff (2026-04-05, session 3)
 
 **What was done this session:**
-- Built entire framework from scratch: 8 specs, 39 tasks, all complete
-- 108 tests across 6 suites, 0 failures
-- Published to grobomo/ccc-manager (7 PRs merged)
-- Created `gh_auto` script + enforcement hook (fixes EMU token issue)
-- Installed gh_auto to ~/bin, hook to ~/.claude/hooks/run-modules/PreToolUse/gh-auto-gate.js
-- Rule file at ~/.claude/rules/gh-auto-required.md
+- T040: YAML parser hardened — quoted strings, object lists, 31 tests
+- T041: Graceful shutdown — drains queue on SIGTERM with timeout
+- T042: Wired rone-teams-poller bridge — completedDir, format normalization
+- T043: Health endpoint — /healthz, /readyz, /metrics for K8s probes
+- T044: Package.json v1.0.0 — exports, bin, files, keywords, MIT
+- T045: Demo script — `npm run demo` for live cycle demonstration
+- Fix: State.metrics.failures was undefined
+- 160 tests across 8 suites, 0 failures, 13 PRs merged
 
-**Current state:** On main branch, all merged, clean working tree.
+**Current state:** On main branch, all Phase 9 tasks complete. v1.0.0 ready.
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -41,7 +43,7 @@
 - [x] T041: Graceful shutdown — drain queue on SIGTERM with configurable timeout
 - [x] T042: Wire rone-teams-poller SELF_REPAIR → bridge with completedDir + format normalization
 - [x] T043: Health endpoint — /healthz, /readyz, /metrics for K8s probes
-- [ ] T044: Publish as npm package or emu marketplace plugin
+- [x] T044: Package.json v1.0.0 — exports, bin, files, keywords, repository, MIT license
 - [x] T045: Demo script (`npm run demo`) — live monitor→dispatch→verify cycle with health endpoint
 - [x] Fix: State tracks failures metric (was undefined)
 
