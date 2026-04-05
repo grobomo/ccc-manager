@@ -1,0 +1,14 @@
+CCC Manager deployed successfully.
+
+Health endpoint:
+  kubectl port-forward svc/{{ include "ccc-manager.fullname" . }} {{ .Values.healthPort }}:{{ .Values.healthPort }}
+  curl http://localhost:{{ .Values.healthPort }}/healthz
+
+Prometheus metrics:
+  curl http://localhost:{{ .Values.healthPort }}/metrics
+
+Check status:
+  kubectl logs deploy/{{ include "ccc-manager.fullname" . }}
+
+Reload config (after ConfigMap update):
+  kubectl exec deploy/{{ include "ccc-manager.fullname" . }} -- kill -HUP 1

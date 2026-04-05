@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.14.0 (2026-04-05)
+- Helm chart for one-command K8s deployment (`helm install ccc helm/ccc-manager/`)
+- Templated: Deployment, Service, ConfigMap, PVC, NetworkPolicy, ServiceMonitor
+- Configurable via `values.yaml`: image, resources, persistence, bridge, networkPolicy
+- Config checksum annotation triggers rolling restart on ConfigMap changes
+- Bridge volume supports existing PVC for shared storage with target project pods
+- RONE values overlay (`values-rone.yaml`) for hackathon-teams-poller deployment
+- Helm chart test suite (49 tests) — validates structure, templates, helpers, security defaults
+- 17 test suites, 444+ tests total
+
 ## v1.13.0 (2026-04-05)
 - DRY: MultiManager.start() delegates to Manager.start() (removed 22-line duplication)
 - README: multi-instance CLI usage, MultiManager API, updated test counts

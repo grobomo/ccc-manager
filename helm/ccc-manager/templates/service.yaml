@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ccc-manager.fullname" . }}
+  labels:
+    {{- include "ccc-manager.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "ccc-manager.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: health
+      port: {{ .Values.healthPort }}
+      targetPort: health
+      protocol: TCP
