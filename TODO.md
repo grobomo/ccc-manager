@@ -92,6 +92,10 @@
 - [x] T068: LogMonitor efficiency — use file offset instead of reading entire file
 - [x] T069: Version bump to v1.3.0, update component docs
 
+## Phase 17: Code Review Fixes
+- [x] T070: WebhookNotifier — extend Notifier base class, add url validation
+- [x] T071: Dispatcher dispatch() DRY — move shared dispatch() to base class
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
