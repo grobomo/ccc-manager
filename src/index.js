@@ -314,7 +314,10 @@ export class Manager {
       input.listen((task) => {
         task.source = `input:${input.name}`;
         task.id = task.id || `${input.name}-${Date.now()}`;
-        this.state.enqueue(task);
+        if (!this.state.isDuplicate(task.id)) {
+          this.state.enqueue(task);
+          this.log.info('Task received (listen)', { input: input.name, taskId: task.id, summary: task.summary || task.type });
+        }
       }).catch(err => this.log.error('Listen error', { input: input.name, error: err.message }));
     }
   }

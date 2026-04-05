@@ -162,6 +162,34 @@ verifiers:
   await manager.stop(); // Should not throw
   assert(true, 'Double-stop did not throw');
 
+  // 5. Listen callback dedup — duplicate tasks should not be enqueued
+  console.log('\n5. Listen callback dedup...');
+  const { State } = await import('../../src/state.js');
+  const dedupState = new State(resolve(TMP, 'dedup-state'), { dedupWindow: 60000 });
+  // Simulate what Manager.start() does with listen callbacks
+  const enqueuedTasks = [];
+  const listenCallback = (task) => {
+    task.source = 'input:test';
+    task.id = task.id || `test-${Date.now()}`;
+    if (!dedupState.isDuplicate(task.id)) {
+      dedupState.enqueue(task);
+      enqueuedTasks.push(task);
+    }
+  };
+  // First submission — should enqueue
+  listenCallback({ id: 'dedup-test-1', summary: 'First' });
+  assert(enqueuedTasks.length === 1, 'First submission enqueued');
+  // Duplicate — should be skipped (in queue)
+  listenCallback({ id: 'dedup-test-1', summary: 'Duplicate while queued' });
+  assert(enqueuedTasks.length === 1, 'Duplicate while queued was skipped');
+  // Complete the task, then resubmit within dedup window — should still be skipped
+  dedupState.complete('dedup-test-1', { passed: true, details: 'ok' });
+  listenCallback({ id: 'dedup-test-1', summary: 'Duplicate after completion' });
+  assert(enqueuedTasks.length === 1, 'Duplicate after completion within dedup window was skipped');
+  // Different ID — should enqueue
+  listenCallback({ id: 'dedup-test-2', summary: 'Different task' });
+  assert(enqueuedTasks.length === 2, 'Different task ID enqueued');
+
   // Cleanup
   if (existsSync(TMP)) rmSync(TMP, { recursive: true });
   if (existsSync(stateDir)) rmSync(stateDir, { recursive: true });
