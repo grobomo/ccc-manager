@@ -19,9 +19,11 @@ export class EC2Worker extends Worker {
       return task.command;
     }
     if (this.method === 'ssm') {
-      return `aws ssm send-command --instance-ids ${this.instanceId} --document-name AWS-RunShellScript --parameters commands="${task.command}" --output text`;
+      // Use JSON array format to avoid shell injection via task.command
+      const cmds = JSON.stringify([task.command]);
+      return `aws ssm send-command --instance-ids ${this.instanceId} --document-name AWS-RunShellScript --parameters ${JSON.stringify('commands=' + cmds)} --output text`;
     }
-    // SSH
+    // SSH — quote the command to prevent shell expansion on the remote host
     const parts = ['ssh', '-o', 'StrictHostKeyChecking=no', '-o', 'ConnectTimeout=10'];
     if (this.keyFile) parts.push('-i', this.keyFile);
     parts.push(`${this.user}@${this.host}`, JSON.stringify(task.command));
