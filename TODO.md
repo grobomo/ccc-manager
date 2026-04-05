@@ -50,6 +50,9 @@
 ## Phase 10: Code Review Cleanup
 - [x] T046: DRY — extract _processTask from runCycle/stop drain duplication
 - [x] T047: CLI exit — process.exit after stop to avoid hanging on SIGTERM
+- [x] T048: Security — fix command injection in EC2Worker SSM mode
+- [x] T049: Register workers in builtins, wire workers into Manager.init
+- [x] T050: Registry.registerWorker + getWorker support
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

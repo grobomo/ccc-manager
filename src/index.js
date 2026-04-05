@@ -23,6 +23,7 @@ export class Manager {
     this.inputs = [];
     this.dispatcher = null;
     this.verifiers = [];
+    this.workers = {};
     this.running = false;
     this.timers = [];
     this.healthServer = null;
@@ -70,7 +71,19 @@ export class Manager {
       }
     }
 
-    console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers`);
+    if (this.config.workers) {
+      for (const [name, cfg] of Object.entries(this.config.workers)) {
+        const WorkerClass = this.registry.getWorker(cfg.type || name);
+        if (WorkerClass) {
+          this.workers[name] = new WorkerClass(cfg);
+        } else {
+          console.warn(`[manager] Unknown worker type: ${cfg.type || name}`);
+        }
+      }
+    }
+
+    const workerCount = Object.keys(this.workers).length;
+    console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers, ${workerCount} workers`);
   }
 
   async _processTask(task) {
