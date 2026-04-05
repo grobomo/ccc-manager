@@ -47,6 +47,10 @@
 - [x] T045: Demo script (`npm run demo`) — live monitor→dispatch→verify cycle with health endpoint
 - [x] Fix: State tracks failures metric (was undefined)
 
+## Phase 10: Code Review Cleanup
+- [x] T046: DRY — extract _processTask from runCycle/stop drain duplication
+- [x] T047: CLI exit — process.exit after stop to avoid hanging on SIGTERM
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
