@@ -371,11 +371,48 @@ export class Manager {
 
 // CLI entry point
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
-  const configPath = process.argv[2];
+  const args = process.argv.slice(2);
+  const flags = new Set(args.filter(a => a.startsWith('-')));
+  const positional = args.filter(a => !a.startsWith('-'));
+
+  if (flags.has('--help') || flags.has('-h')) {
+    const { readFileSync } = await import('node:fs');
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'));
+    console.log(`ccc-manager v${pkg.version} — ${pkg.description}
+
+Usage: ccc-manager <config.yaml> [options]
+
+Options:
+  --validate   Validate config and exit (no start)
+  --version    Print version and exit
+  --help       Show this help`);
+    process.exit(0);
+  }
+
+  if (flags.has('--version') || flags.has('-v')) {
+    const { readFileSync } = await import('node:fs');
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'));
+    console.log(pkg.version);
+    process.exit(0);
+  }
+
+  const configPath = positional[0];
   if (!configPath) {
-    console.error('Usage: node src/index.js <config.yaml>');
+    console.error('Usage: ccc-manager <config.yaml> [--validate] [--version] [--help]');
     process.exit(1);
   }
+
+  if (flags.has('--validate')) {
+    try {
+      loadConfig(resolve(configPath));
+      console.log('Config OK');
+      process.exit(0);
+    } catch (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+  }
+
   const manager = new Manager(resolve(configPath));
   const shutdown = () => manager.stop().then(() => process.exit(0));
   process.on('SIGINT', shutdown);
