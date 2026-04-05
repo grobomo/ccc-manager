@@ -3,6 +3,7 @@
 
 import { execSync } from 'node:child_process';
 import { Input } from '../base.js';
+import { createLogger } from '../logger.js';
 
 export class GitHubInput extends Input {
   constructor(name, config) {
@@ -10,6 +11,7 @@ export class GitHubInput extends Input {
     this.repo = config.repo;
     this.label = config.label || 'self-repair';
     this._seen = new Set();
+    this.log = createLogger(`github:${name}`);
     if (!this.repo) throw new Error('GitHubInput requires config.repo');
   }
 
@@ -43,7 +45,7 @@ export class GitHubInput extends Input {
       return newIssues;
     } catch (err) {
       if (!err.message.includes('not found')) {
-        console.error(`[github:${this.name}] Poll error: ${err.message}`);
+        this.log.error('Poll error', { error: err.message });
       }
       return [];
     }

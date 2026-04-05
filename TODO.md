@@ -118,6 +118,10 @@
 - [x] T081: Wire file notifier into rone-teams-poller.yaml for bridge result consumption
 - [x] T082: Prometheus /metrics — text exposition format for K8s scraping
 
+## Phase 22: Code Review Hardening
+- [x] T083: Replace console.log/warn/error with structured logger in all components
+- [x] T084: ClaudeDispatcher — fix shell injection via execFileSync
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

@@ -5,12 +5,14 @@
 import { readdirSync, readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { Input } from '../base.js';
+import { createLogger } from '../logger.js';
 
 export class BridgeInput extends Input {
   constructor(name, config) {
     super(name, config);
     this.path = config.path;
     this.completedDir = config.completedDir || null;
+    this.log = createLogger(`bridge:${name}`);
     if (!this.path) throw new Error('BridgeInput requires config.path');
   }
 
@@ -43,7 +45,7 @@ export class BridgeInput extends Input {
         if (!existsSync(doneDir)) mkdirSync(doneDir, { recursive: true });
         renameSync(filePath, join(doneDir, file));
       } catch (err) {
-        console.error(`[bridge] Failed to read ${file}: ${err.message}`);
+        this.log.error('Failed to read file', { file, error: err.message });
       }
     }
 
