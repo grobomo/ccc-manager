@@ -17,7 +17,10 @@ const ROOT = resolve(__dirname, '..');
 export class Manager {
   constructor(configPath) {
     this.config = loadConfig(configPath);
-    this.state = new State(resolve(ROOT, 'state'));
+    this.state = new State(resolve(ROOT, 'state'), {
+      dedupWindow: this.config.dedupWindow,
+      maxHistory: this.config.maxHistory,
+    });
     this.registry = new Registry();
     this.monitors = [];
     this.inputs = [];
@@ -30,11 +33,24 @@ export class Manager {
     this.healthServer = null;
   }
 
-  _initComponents(section, getter, target) {
+  async _initComponents(section, getter, target) {
     const entries = this.config[section];
     if (!entries) return;
     for (const [name, cfg] of Object.entries(entries)) {
-      const Cls = getter(cfg.type || name);
+      const type = cfg.type || name;
+      let Cls = getter(type);
+
+      // Plugin loader: if type is a file path, dynamically import it
+      if (!Cls && (type.startsWith('./') || type.startsWith('/') || type.startsWith('../'))) {
+        try {
+          const mod = await import(resolve(ROOT, type));
+          Cls = mod.default || Object.values(mod)[0];
+          console.log(`[manager] Loaded plugin: ${type}`);
+        } catch (err) {
+          console.error(`[manager] Failed to load plugin ${type}: ${err.message}`);
+        }
+      }
+
       if (Cls) {
         if (Array.isArray(target)) target.push(new Cls(name, cfg));
         else target[name] = new Cls(cfg); // workers use object map, no name arg
@@ -47,11 +63,11 @@ export class Manager {
   async init() {
     registerBuiltins(this.registry);
 
-    this._initComponents('monitors', t => this.registry.getMonitor(t), this.monitors);
-    this._initComponents('inputs', t => this.registry.getInput(t), this.inputs);
-    this._initComponents('verifiers', t => this.registry.getVerifier(t), this.verifiers);
-    this._initComponents('workers', t => this.registry.getWorker(t), this.workers);
-    this._initComponents('notifiers', t => this.registry.getNotifier(t), this.notifiers);
+    await this._initComponents('monitors', t => this.registry.getMonitor(t), this.monitors);
+    await this._initComponents('inputs', t => this.registry.getInput(t), this.inputs);
+    await this._initComponents('verifiers', t => this.registry.getVerifier(t), this.verifiers);
+    await this._initComponents('workers', t => this.registry.getWorker(t), this.workers);
+    await this._initComponents('notifiers', t => this.registry.getNotifier(t), this.notifiers);
 
     const dispType = this.config.dispatcher?.type || 'shtd';
     const DispatcherClass = this.registry.getDispatcher(dispType);

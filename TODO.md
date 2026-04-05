@@ -1,16 +1,16 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 5)
+## Session Handoff (2026-04-05, session 7)
 
 **What was done this session:**
-- T051: Published to emu marketplace (PR #76)
-- T052: Wired SHTDDispatcher to use workers for task execution
-- T053: WebhookInput — HTTP POST endpoint with HMAC auth for CI/CD triggers
-- T054: WebhookNotifier — posts results to Teams/Slack/JSON webhooks
-- T055: Retry logic — failed tasks retry N times before permanent failure
-- 203 tests across 9 suites, 0 failures, 4 PRs merged to main
+- T060: Claude-powered dispatcher — calls `claude -p` for AI spec generation, falls back to SHTD
+- T061: Configurable dedup window via `dedupWindow` config (was hardcoded 1hr)
+- T062: History rotation via `maxHistory` config (prevents unbounded growth)
+- T063: Plugin loader — components with `./path` type are dynamically imported
+- 234 tests across 11 suites, 0 failures
 
-**Current state:** On main branch, all Phase 11 tasks complete. 14 components, 203 tests.
+**Current state:** On branch 022-T060-claude-dispatcher. 15 components, 234 tests.
+**Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, awaiting approval)
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -22,7 +22,7 @@
 - Phase 7: Deploy & integrate (Dockerfile, unified test runner, docs)
 - Phase 8: gh_auto (auto GitHub account switching, enforcement hook)
 
-## Components (14 built-in)
+## Components (15 built-in)
 | Type | Name | File |
 |------|------|------|
 | Monitor | process | src/monitors/process.js |
@@ -32,6 +32,7 @@
 | Input | github | src/inputs/github.js |
 | Input | webhook | src/inputs/webhook.js |
 | Dispatcher | shtd | src/dispatcher/shtd.js |
+| Dispatcher | claude | src/dispatcher/claude.js |
 | Verifier | test-suite | src/verifiers/test-suite.js |
 | Worker | local | src/workers/local.js |
 | Worker | k8s | src/workers/k8s.js |
@@ -68,6 +69,12 @@
 ## Phase 13: Polish & Integration
 - [x] T058: DRY init() — extract _initComponents helper (30 lines → 10)
 - [x] T059: Add webhook, notifier, worker, retry config examples
+
+## Phase 14: AI-Powered Core
+- [x] T060: Claude-powered dispatcher — calls `claude -p` for real spec generation
+- [x] T061: Configurable dedup window (was hardcoded 1hr)
+- [x] T062: History rotation — cap size, prune old entries
+- [x] T063: Plugin loader — load custom components from file paths
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

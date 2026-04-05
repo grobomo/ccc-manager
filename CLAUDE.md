@@ -32,7 +32,7 @@ node src/index.js config/example.yaml
 ## Testing
 
 ```bash
-npm test                          # All 9 suites (203 tests)
+npm test                          # All 11 suites (234 tests)
 node scripts/test/run-all.js      # Same thing
 node scripts/test/test-scaffold.js  # Core framework only
 ```
@@ -47,6 +47,7 @@ node scripts/test/test-scaffold.js  # Core framework only
 | Input | `alert` | In-memory queue (monitor→dispatcher) |
 | Input | `github` | Poll GitHub issues by label via gh CLI |
 | Dispatcher | `shtd` | Analyze issue → SHTD spec/tasks |
+| Dispatcher | `claude` | AI-powered spec generation via claude -p |
 | Verifier | `test-suite` | Run command, pass if exit 0 |
 | Worker | `local` | Execute via child_process |
 | Worker | `k8s` | Execute via kubectl exec |

@@ -19,8 +19,15 @@ inputs:
   #   path: /data/bridge/tasks
 
 # Dispatcher analyzes issues and distributes work
+# type: shtd (structured fallback) or claude (AI-powered via claude -p)
 dispatcher:
   type: shtd
+  # Claude dispatcher options (when type: claude):
+  # claudePath: claude
+  # model: haiku
+  # timeout: 60000
+  # projectDir: /path/to/project
+  # maxPromptLen: 4000
 
 # Verifiers confirm fixes were applied correctly
 verifiers:
@@ -58,3 +65,9 @@ notifiers:
 
 # Queue drain timeout on shutdown in ms (default: 30000)
 # drainTimeout: 30000
+
+# Dedup window — ignore duplicate issue IDs within this period (default: 3600000 = 1hr)
+# dedupWindow: 3600000
+
+# Max history entries — prune oldest when exceeded (default: 1000)
+# maxHistory: 1000
