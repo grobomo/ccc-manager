@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ccc-manager
+  labels:
+    app: ccc-manager
+spec:
+  selector:
+    app: ccc-manager
+  ports:
+    - name: health
+      port: 8080
+      targetPort: health
+      protocol: TCP

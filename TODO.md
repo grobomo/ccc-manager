@@ -152,6 +152,9 @@
 - [x] T096: CLI --list-components flag — discover available component types for config authoring
 - [x] T097: Version bump to v1.7.0, GitHub release
 
+## Phase 28: Deployment Manifests
+- [x] T098: K8s deployment manifests — Deployment, ConfigMap, Service, ServiceMonitor
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

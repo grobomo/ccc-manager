@@ -1,0 +1,17 @@
+# ServiceMonitor for Prometheus Operator.
+# Import config/grafana-dashboard.json into Grafana for pre-built panels.
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ccc-manager
+  labels:
+    app: ccc-manager
+spec:
+  selector:
+    matchLabels:
+      app: ccc-manager
+  endpoints:
+    - port: health
+      path: /metrics
+      interval: 30s
