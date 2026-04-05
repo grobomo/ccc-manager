@@ -53,6 +53,22 @@
 - [x] T021: Checkpoint: 16/16 tests pass (scripts/test/test-pipeline.js)
 - [x] All 71 tests pass across 4 suites
 
+## Phase 5: Harden & Publish (COMPLETE)
+- [x] T022: Fix metrics.issues persistence — save after increment
+- [x] T023: Add dedup to runCycle — skip if already in queue/recent history
+- [x] T024: Add secret-scan.yml GitHub Actions workflow
+- [x] T025: Configure git local config for grobomo
+- [x] T026: Initial commit and push to grobomo/ccc-manager
+- [x] Gotcha: gh auth switch broken with EMU — use GH_TOKEN=$(gh auth token -u grobomo) instead
+
+## Phase 6: Next — Real-World Integration
+- [ ] T027: K8sWorker — dispatch tasks via kubectl exec or K8s Jobs
+- [ ] T028: EC2Worker — dispatch tasks via SSH/SSM to EC2 instances
+- [ ] T029: LogMonitor — watch log files/streams for error patterns
+- [ ] T030: GitHubInput — poll GitHub issues labeled 'self-repair'
+- [ ] T031: Wire rone-teams-poller SELF_REPAIR → ccc-manager bridge directory
+- [ ] T032: Dockerize manager for deployment as K8s sidecar or standalone pod
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
