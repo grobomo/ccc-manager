@@ -72,8 +72,12 @@ export class SQSInput extends Input {
 
     const doPoll = async () => {
       if (!this._listening) return;
-      const tasks = await this.poll();
-      for (const task of tasks) callback(task);
+      try {
+        const tasks = await this.poll();
+        for (const task of tasks) callback(task);
+      } catch (err) {
+        this.log.error('Listen poll error', { error: err.message });
+      }
       if (this._listening) {
         this._pollTimer = setTimeout(doPoll, pollInterval);
       }

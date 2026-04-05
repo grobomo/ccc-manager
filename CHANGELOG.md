@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.17.0 (2026-04-05)
+- Code review: logger filters undefined values from text output (no more `key=undefined`)
+- Code review: SQSInput.listen() try/catch prevents silent poll loop death on callback error
+- Full code review of all 26 source files — no other DRY/security/quality issues found
+
 ## v1.16.0 (2026-04-05)
 - Security: sanitize bridge writeResult requestId to prevent path traversal
 - Component table: 20 components (added SQS input, SQS dispatcher)

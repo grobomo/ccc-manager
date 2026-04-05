@@ -22,8 +22,9 @@ export function createLogger(component, options = {}) {
       process.stderr.write(JSON.stringify(entry) + '\n');
     } else {
       const prefix = `[${component}]`;
-      const extra = data && Object.keys(data).length > 0
-        ? ' ' + Object.entries(data).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ')
+      const entries = data ? Object.entries(data).filter(([, v]) => v !== undefined) : [];
+      const extra = entries.length > 0
+        ? ' ' + entries.map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ')
         : '';
       const stream = lvl === 'error' || lvl === 'warn' ? process.stderr : process.stdout;
       stream.write(`${prefix} ${msg}${extra}\n`);

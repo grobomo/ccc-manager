@@ -3,8 +3,8 @@
 // schedule format: 'minute hour dayOfMonth month dayOfWeek' (simplified cron)
 // Supports: *, */N (every N), specific numbers, comma-separated lists.
 
-import { execSync } from 'node:child_process';
 import { Monitor } from '../base.js';
+import { execCommand } from './exec-helper.js';
 
 export class CronMonitor extends Monitor {
   constructor(name, config) {
@@ -26,22 +26,18 @@ export class CronMonitor extends Monitor {
     if (this._lastRunKey === minuteKey) return [];
     this._lastRunKey = minuteKey;
 
-    try {
-      execSync(this.command, { stdio: 'pipe', timeout: this.config.timeout || 30000 });
-      return [];
-    } catch (err) {
-      const cmdPreview = this.command.length > 80 ? this.command.slice(0, 77) + '...' : this.command;
-      return [{
-        severity: this.config.severity || 'high',
-        summary: `Cron check failed: ${cmdPreview}`,
-        details: {
-          exitCode: err.status,
-          stderr: err.stderr?.toString().slice(0, 500) || '',
-          command: this.command,
-          schedule: this.schedule
-        }
-      }];
-    }
+    const result = execCommand(this.command, this.config.timeout || 30000);
+    if (result.success) return [];
+    return [{
+      severity: this.config.severity || 'high',
+      summary: `Cron check failed: ${result.cmdPreview}`,
+      details: {
+        exitCode: result.exitCode,
+        stderr: result.stderr,
+        command: this.command,
+        schedule: this.schedule
+      }
+    }];
   }
 }
 
