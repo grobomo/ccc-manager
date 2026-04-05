@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.13.0 (2026-04-05)
+- DRY: MultiManager.start() delegates to Manager.start() (removed 22-line duplication)
+- README: multi-instance CLI usage, MultiManager API, updated test counts
+
 ## v1.12.0 (2026-04-05)
 - Multi-instance support: run multiple configs from one process
 - Per-instance state isolation (`state/<name>/` directories)
