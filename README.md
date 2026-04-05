@@ -101,7 +101,33 @@ notifiers:
     format: teams
 
 maxRetries: 2
+dedupWindow: 3600000
 ```
+
+### Environment Variables in Config
+
+Config values support `${VAR}` and `${VAR:-default}` syntax for K8s/Docker deployments
+where secrets come from environment:
+
+```yaml
+notifiers:
+  teams:
+    type: webhook
+    url: ${TEAMS_WEBHOOK_URL}
+    secret: ${HMAC_SECRET:-dev-secret}
+```
+
+### Multi-Worker Coordination
+
+When multiple workers share a state directory, enable task claims to prevent duplicate work:
+
+```yaml
+workerId: worker-1        # Unique per worker instance
+claimTimeout: 600000      # Auto-release after 10min (default)
+```
+
+Each worker claims tasks atomically before processing. Claimed tasks are skipped by other
+workers. Claims auto-expire so crashed workers don't permanently lock tasks.
 
 ## Observability
 
@@ -125,7 +151,7 @@ helm install ccc helm/ccc-manager/ -f my-values.yaml
 # Override individual values
 helm install ccc helm/ccc-manager/ \
   --set image.repository=my-registry/ccc-manager \
-  --set image.tag=v1.18.0 \
+  --set image.tag=v1.23.0 \
   --set persistence.storageClassName=gp3 \
   --set serviceMonitor.enabled=true
 ```
@@ -199,7 +225,7 @@ The plugin file should export a class extending the appropriate base class from 
 ## Testing
 
 ```bash
-npm test    # 21 suites, 581 tests
+npm test    # 22 suites, 607 tests
 ```
 
 ## License
