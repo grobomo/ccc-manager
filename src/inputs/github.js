@@ -30,7 +30,7 @@ export class GitHubInput extends Input {
   async poll() {
     try {
       const output = execSync(
-        `gh issue list --repo ${this.repo} --label "${this.label}" --state open --json number,title,body,labels`,
+        `gh issue list --repo ${JSON.stringify(this.repo)} --label ${JSON.stringify(this.label)} --state open --json number,title,body,labels`,
         { stdio: 'pipe', timeout: 30000 }
       ).toString();
 

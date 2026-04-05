@@ -71,3 +71,7 @@ notifiers:
 
 # Max history entries — prune oldest when exceeded (default: 1000)
 # maxHistory: 1000
+
+# Log format: text (default, human-readable) or json (structured, for production)
+# Also configurable via CCC_LOG_FORMAT=json env var
+# logFormat: text

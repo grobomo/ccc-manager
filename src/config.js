@@ -136,12 +136,53 @@ function parseValue(val) {
   return val;
 }
 
+export function validateConfig(config) {
+  const errors = [];
+
+  if (!config.name) errors.push('Missing required field: name');
+  if (config.interval !== undefined && (typeof config.interval !== 'number' || config.interval < 1000)) {
+    errors.push('interval must be a number >= 1000 (ms)');
+  }
+  if (config.maxRetries !== undefined && (typeof config.maxRetries !== 'number' || config.maxRetries < 0)) {
+    errors.push('maxRetries must be a non-negative number');
+  }
+  if (config.dedupWindow !== undefined && (typeof config.dedupWindow !== 'number' || config.dedupWindow < 0)) {
+    errors.push('dedupWindow must be a non-negative number (ms)');
+  }
+  if (config.maxHistory !== undefined && (typeof config.maxHistory !== 'number' || config.maxHistory < 1)) {
+    errors.push('maxHistory must be a positive number');
+  }
+  if (config.logFormat !== undefined && !['json', 'text'].includes(config.logFormat)) {
+    errors.push('logFormat must be "json" or "text"');
+  }
+
+  // Validate component sections have type fields
+  for (const section of ['monitors', 'inputs', 'verifiers', 'workers', 'notifiers']) {
+    if (config[section] && typeof config[section] === 'object') {
+      for (const [name, cfg] of Object.entries(config[section])) {
+        if (!cfg || typeof cfg !== 'object') {
+          errors.push(`${section}.${name}: must be an object with at least a type field`);
+        }
+      }
+    }
+  }
+
+  return errors;
+}
+
 export function loadConfig(configPath) {
   if (!existsSync(configPath)) {
     throw new Error(`Config not found: ${configPath}`);
   }
   const text = readFileSync(configPath, 'utf-8');
-  return parseYaml(text);
+  const config = parseYaml(text);
+
+  const errors = validateConfig(config);
+  if (errors.length > 0) {
+    throw new Error(`Config validation failed:\n  - ${errors.join('\n  - ')}`);
+  }
+
+  return config;
 }
 
 export function loadProjectConfig(configDir, projectName) {

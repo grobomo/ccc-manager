@@ -7,9 +7,12 @@
 - T061: Configurable dedup window via `dedupWindow` config (was hardcoded 1hr)
 - T062: History rotation via `maxHistory` config (prevents unbounded growth)
 - T063: Plugin loader — components with `./path` type are dynamically imported
-- 234 tests across 11 suites, 0 failures
+- T064: Fix command injection in GitHubInput (shell-escape repo/label args)
+- T065: Structured JSON logging mode (`logFormat: json` or `CCC_LOG_FORMAT=json`)
+- T066: Config validation at startup — catches bad configs before runtime
+- 252 tests across 12 suites, 0 failures, v1.2.0
 
-**Current state:** On branch 022-T060-claude-dispatcher. 15 components, 234 tests.
+**Current state:** On branch 023-T064-security-logging. 15 components, 252 tests.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, awaiting approval)
 
 ## Completed Phases (1-8)
@@ -75,6 +78,11 @@
 - [x] T061: Configurable dedup window (was hardcoded 1hr)
 - [x] T062: History rotation — cap size, prune old entries
 - [x] T063: Plugin loader — load custom components from file paths
+
+## Phase 15: Hardening & Observability
+- [x] T064: Fix command injection in GitHubInput (shell-escape repo/label args)
+- [x] T065: Structured JSON logging mode for production deployments
+- [x] T066: Config validation at startup — catch bad configs early
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
