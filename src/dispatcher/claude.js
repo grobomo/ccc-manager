@@ -43,12 +43,13 @@ export class ClaudeDispatcher extends Dispatcher {
       '{',
       '  "title": "Brief fix title",',
       '  "tasks": [',
-      '    { "type": "investigate|fix|verify", "summary": "What to do", "command": "shell command or null" }',
+      '    { "type": "investigate|fix|verify", "summary": "What to do", "command": "shell command or null", "writeSet": ["file/paths/this/task/modifies.js"] }',
       '  ]',
       '}',
       '',
       'Rules:',
-      '- Each task must have type, summary, and command (null if manual investigation)',
+      '- Each task must have type, summary, command (null if manual), and writeSet (files it will modify)',
+      '- writeSet enables parallel execution — tasks with non-overlapping write sets run concurrently',
       '- Keep commands safe — no rm -rf, no force operations',
       '- Prefer diagnostic commands first, then targeted fixes',
     );
@@ -111,6 +112,7 @@ export class ClaudeDispatcher extends Dispatcher {
           type: t.type || 'fix',
           summary: t.summary,
           command: t.command || null,
+          writeSet: Array.isArray(t.writeSet) ? t.writeSet : [],
           issue
         });
       }

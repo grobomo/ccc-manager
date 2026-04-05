@@ -1,6 +1,8 @@
 // Base classes for CCC Manager components.
 // Each component type (Monitor, Input, Dispatcher, Verifier) extends these.
 
+import { validateWriteSets } from './dispatcher/write-sets.js';
+
 export class Monitor {
   constructor(name, config) {
     this.name = name;
@@ -50,6 +52,9 @@ export class Dispatcher {
   // Tasks with dependsOn wait for their dependencies to complete first.
   // Each task can specify a worker via task.worker (falls back to config default).
   async dispatch(plan, config, workers = {}) {
+    // Apply write set validation — adds dependsOn edges where file targets overlap
+    plan = validateWriteSets(plan);
+
     const defaultWorkerName = config.dispatcher?.worker || 'default';
     const defaultWorker = workers[defaultWorkerName] || Object.values(workers)[0];
     const parallel = config.dispatcher?.parallel !== false; // default: true

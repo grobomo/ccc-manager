@@ -12,6 +12,7 @@ import { State } from './state.js';
 import { Registry } from './registry.js';
 import { registerBuiltins } from './builtins.js';
 import { createLogger } from './logger.js';
+import { FleetCoordinator } from './fleet.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -66,6 +67,14 @@ export class Manager {
     this._reloadDebounce = null;
     this._startedAt = Date.now();
     this._lastReloadAt = null;
+
+    // Fleet coordination (optional — enabled when workerId is set)
+    this.fleet = this.workerId ? new FleetCoordinator({
+      stateDir: this.state.dir,
+      workerId: this.workerId,
+      staleThreshold: this.config.staleThreshold,
+    }) : null;
+    if (this.fleet) this.state.fleet = this.fleet;
   }
 
   async _initComponents(section, getter, target) {
@@ -217,6 +226,13 @@ export class Manager {
     }
 
     this.state.recordCycle();
+
+    // Fleet heartbeat — report current tasks and metrics to peers
+    if (this.fleet) {
+      const inProgress = this.state.queue.filter(t => t.status === 'in_progress').map(t => t.id);
+      this.fleet.heartbeat({ currentTasks: inProgress, metrics: this.state.metrics });
+      this.fleet.pruneStale();
+    }
   }
 
   healthStatus() {
@@ -267,6 +283,9 @@ export class Manager {
           res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
           res.end(lines.join('\n'));
         }
+      } else if (req.url === '/fleet' && this.fleet) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(this.fleet.status()));
       } else {
         res.writeHead(404);
         res.end('Not found');
@@ -384,6 +403,9 @@ export class Manager {
     if (drained > 0) {
       this.log.info('Drained tasks during shutdown', { drained });
     }
+
+    // Deregister from fleet
+    if (this.fleet) this.fleet.deregister();
 
     // Close config watcher
     if (this._configWatcher) {

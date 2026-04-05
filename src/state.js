@@ -14,6 +14,7 @@ export class State {
     this.maxHistory = options.maxHistory ?? 1000; // Default 1000 entries
     this.claimTimeout = options.claimTimeout ?? 600000; // Default 10 minutes
     this.workerId = options.workerId ?? null;
+    this.fleet = options.fleet ?? null; // FleetCoordinator reference for peer awareness
     if (!existsSync(this.dir)) mkdirSync(this.dir, { recursive: true });
     this.queue = this._load('queue.json', []);
     this.history = this._load('history.json', []);
@@ -54,10 +55,11 @@ export class State {
       return (a.enqueuedAt || 0) - (b.enqueuedAt || 0); // FIFO within same priority
     });
 
-    // Skip tasks claimed by other workers
+    // Skip tasks claimed by other workers or owned by fleet peers
     for (const task of queued) {
       const claimedBy = this.isClaimed(task.id);
       if (claimedBy) continue; // Another worker has this task
+      if (this.fleet?.isTaskOwnedByPeer(task.id)) continue; // Fleet peer owns this
       if (!this.claim(task.id)) continue; // Couldn't claim (race condition)
       task.status = 'in_progress';
       task.startedAt = Date.now();
