@@ -7,8 +7,10 @@
 - T101-T103: CLI --dry-run, --status flags + --status no-config fix (PR #45)
 - T104: Version bump to v1.8.0 + GitHub release (PR #46)
 - T105: GitHubInput execFileSync — eliminate shell injection (PR #47)
+- T106: Container security — non-root Dockerfile, K8s securityContext (PR #48)
+- Full code review of all source files — no issues found
 
-**Current state:** v1.8.0 on main. 17 components, 359 tests across 15 suites, 47 PRs merged.
+**Current state:** v1.8.0 on main. 17 components, 359 tests across 15 suites, 48 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
