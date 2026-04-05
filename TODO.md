@@ -69,10 +69,12 @@
 - [x] T031: Registration in builtins.js
 - [x] T032: Checkpoint: 24/24 tests pass (scripts/test/test-workers.js), 95 total
 
-## Phase 7: Deployment & Integration
-- [ ] T033: Dockerize manager for K8s sidecar or standalone pod
-- [ ] T034: Wire rone-teams-poller SELF_REPAIR → ccc-manager bridge directory
-- [ ] T035: Add npm test script that runs all 5 test suites
+## Phase 7: Deploy & Integrate (COMPLETE)
+- [x] T033: Dockerfile — node:20-slim, zero deps
+- [x] T034: Unified test runner — scripts/test/run-all.js (95 tests, 5 suites)
+- [x] T035: Updated package.json + CLAUDE.md component inventory
+
+## Status: All phases complete. 95 tests pass. Published to grobomo/ccc-manager.
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
