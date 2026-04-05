@@ -85,10 +85,10 @@ async function main() {
   assert(ignored === null, 'Ignores non-gh commands');
 
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-  process.exit(failed > 0 ? 1 : 0);
+  setTimeout(() => process.exit(failed > 0 ? 1 : 0), 100);
 }
 
 main().catch(err => {
   console.error('Test error:', err);
-  process.exit(1);
+  setTimeout(() => process.exit(1), 100);
 });
