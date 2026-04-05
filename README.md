@@ -45,8 +45,10 @@ Manager Runtime (src/index.js)
 | Input | `alert` | In-memory queue (monitor to dispatcher) |
 | Input | `github` | Poll GitHub issues by label via gh CLI |
 | Input | `webhook` | HTTP POST endpoint with HMAC auth |
+| Input | `sqs` | Receive tasks from AWS SQS queue |
 | Dispatcher | `shtd` | Structured fallback (investigate + verify) |
 | Dispatcher | `claude` | AI-powered spec generation via `claude -p` |
+| Dispatcher | `sqs` | Distribute sharded work via SQS task/result queues |
 | Verifier | `test-suite` | Run command, pass if exit 0 |
 | Worker | `local` | Execute via child_process |
 | Worker | `k8s` | Execute via kubectl exec |

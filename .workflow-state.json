@@ -1,7 +1,7 @@
 {
   "workflow": "shtd",
   "workflow_path": "C:\\Users\\joelg\\.claude\\hooks\\workflows\\shtd.yml",
-  "started_at": "2026-04-05T21:43:48.569Z",
+  "started_at": "2026-04-05T22:29:01.494Z",
   "steps": {
     "spec": {
       "status": "pending"

@@ -97,7 +97,9 @@ export class BridgeInput extends Input {
   writeResult(requestId, result) {
     if (!this.completedDir) return;
     if (!existsSync(this.completedDir)) mkdirSync(this.completedDir, { recursive: true });
-    const outPath = join(this.completedDir, `${requestId}.json`);
+    // Sanitize requestId to prevent path traversal (same pattern as FileNotifier)
+    const safeId = String(requestId).replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.{2,}/g, '.');
+    const outPath = join(this.completedDir, `${safeId}.json`);
     writeFileSync(outPath, JSON.stringify(result, null, 2));
   }
 }
