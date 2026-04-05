@@ -161,7 +161,7 @@ console.log('6. Prometheus text exposition format...');
   const { Manager } = await import('../../src/index.js');
 
   // Clear shared state queue so other test suites don't pollute queue length
-  const queueFile = resolve(ROOT, 'state', 'queue.json');
+  const queueFile = resolve(ROOT, 'state', 'test-prom', 'queue.json');
   if (existsSync(queueFile)) unlinkSync(queueFile);
 
   const tmpDir = resolve(ROOT, 'state', '_test_prom');
@@ -196,11 +196,11 @@ healthPort: 0
 
   assert(promRes.headers.get('content-type').includes('text/plain'), 'Content-Type is text/plain');
   assert(promText.includes('# TYPE ccc_cycles_total counter'), 'Has TYPE line for cycles');
-  assert(promText.includes('ccc_cycles_total 42'), 'Cycles value correct');
-  assert(promText.includes('ccc_issues_total 10'), 'Issues value correct');
-  assert(promText.includes('ccc_fixes_total 7'), 'Fixes value correct');
-  assert(promText.includes('ccc_failures_total 3'), 'Failures value correct');
-  assert(promText.includes('ccc_queue_length 0'), 'Queue length correct');
+  assert(promText.includes('ccc_cycles_total{instance="test-prom"} 42'), 'Cycles value correct');
+  assert(promText.includes('ccc_issues_total{instance="test-prom"} 10'), 'Issues value correct');
+  assert(promText.includes('ccc_fixes_total{instance="test-prom"} 7'), 'Fixes value correct');
+  assert(promText.includes('ccc_failures_total{instance="test-prom"} 3'), 'Failures value correct');
+  assert(promText.includes('ccc_queue_length{instance="test-prom"} 0'), 'Queue length correct');
   assert(promText.includes('ccc_uptime_seconds'), 'Has uptime gauge');
   assert(promText.includes('ccc_last_reload_timestamp_seconds'), 'Has last_reload gauge');
 

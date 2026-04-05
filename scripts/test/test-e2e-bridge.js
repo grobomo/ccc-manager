@@ -24,7 +24,7 @@ async function main() {
   const tmpDir = resolve(ROOT, 'state', '_test_e2e_bridge');
   const bridgeDir = resolve(tmpDir, 'bridge', 'pending');
   const completedDir = resolve(tmpDir, 'bridge', 'completed');
-  const stateDir = resolve(ROOT, 'state');
+  const stateDir = resolve(ROOT, 'state', 'e2e-bridge-test');
   const configPath = resolve(tmpDir, 'e2e-config.yaml');
 
   // Clean

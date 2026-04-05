@@ -1,24 +1,19 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 18)
+## Session Handoff (2026-04-05, session 19)
 
 **What was done this session:**
-- T123: GitHub Actions test CI — Node 18/20/22 matrix (PR #58)
-- T124: README.md — project overview, quickstart, architecture, component table
-- T125: Dockerfile — add Grafana dashboard to COPY
-- T126: Cleaned up all stale branches (local + remote, 14+ deleted)
-- T127: GitHub input added to rone-teams-poller.yaml for SELF_REPAIR issues
-- T128: Fix secret-scan self-match — PRIVATE KEY grep matched workflow file (PR #59)
-- T129: Version bump to v1.11.0, GitHub release
+- T130-T134: Multi-instance support — isolated state, labeled metrics, MultiManager, shared health, tests
+- Version bump to v1.12.0
 
-**Current state:** v1.11.0 on main. 17 components, 359 tests across 15 suites, 59 PRs merged.
+**Current state:** v1.12.0 on branch. 17 components, 395 tests across 16 suites.
 **All CI green:** Tests (Node 18/20/22) + Secret Scan pass on GitHub Actions.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
-- Consider: multi-instance support (one manager per project, shared Prometheus endpoint)
+- Version bump + GitHub release for v1.12.0
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -200,6 +195,13 @@
 ## Phase 38: CI Fix & Release
 - [x] T128: Fix secret-scan self-match — add file type filters to PRIVATE KEY grep
 - [x] T129: Version bump to v1.11.0, GitHub release with CHANGELOG update
+
+## Phase 39: Multi-Instance Support
+- [x] T130: Per-instance state isolation — each Manager uses state/<name>/ directory
+- [x] T131: Instance-labeled Prometheus metrics — add {instance="name"} labels
+- [x] T132: Multi-config CLI — accept multiple config files, shared signal handling
+- [x] T133: Aggregated health endpoint — single HTTP server for all instances
+- [x] T134: Multi-instance test suite — verify isolated state, merged metrics, shared health
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager

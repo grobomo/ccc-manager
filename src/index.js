@@ -19,12 +19,33 @@ const ROOT = resolve(__dirname, '..');
 // Hot-reloadable config fields (changed at runtime without restart)
 const HOT_RELOAD_FIELDS = ['interval', 'maxRetries', 'dedupWindow', 'maxHistory', 'drainTimeout'];
 
+// Prometheus metric headers (shared between single and multi-instance)
+const PROM_HEADERS = [
+  '# HELP ccc_cycles_total Total run cycles completed',
+  '# TYPE ccc_cycles_total counter',
+  '# HELP ccc_issues_total Total issues detected',
+  '# TYPE ccc_issues_total counter',
+  '# HELP ccc_fixes_total Total fixes applied',
+  '# TYPE ccc_fixes_total counter',
+  '# HELP ccc_failures_total Total failures',
+  '# TYPE ccc_failures_total counter',
+  '# HELP ccc_queue_length Current queue depth',
+  '# TYPE ccc_queue_length gauge',
+  '# HELP ccc_uptime_seconds Seconds since manager started',
+  '# TYPE ccc_uptime_seconds gauge',
+  '# HELP ccc_last_reload_timestamp_seconds Unix timestamp of last config reload',
+  '# TYPE ccc_last_reload_timestamp_seconds gauge',
+];
+
 export class Manager {
-  constructor(configPath) {
+  constructor(configPath, options = {}) {
     this.configPath = resolve(configPath);
     this.config = loadConfig(this.configPath);
-    this.log = createLogger('manager', { json: this.config.logFormat === 'json' });
-    this.state = new State(resolve(ROOT, 'state'), {
+    this.instanceName = this.config.name;
+    this.log = createLogger(this.instanceName || 'manager', { json: this.config.logFormat === 'json' });
+    this._skipHealth = options.skipHealth || false;
+    const stateDir = options.stateDir || resolve(ROOT, 'state', this.instanceName || '');
+    this.state = new State(stateDir, {
       dedupWindow: this.config.dedupWindow,
       maxHistory: this.config.maxHistory,
     });
@@ -193,53 +214,49 @@ export class Manager {
     this.state.recordCycle();
   }
 
+  healthStatus() {
+    return { instance: this.instanceName, status: this.running ? 'ok' : 'stopping', uptime: process.uptime() };
+  }
+
+  readyStatus() {
+    const ready = this.running && this.dispatcher !== null;
+    return { instance: this.instanceName, status: ready ? 'ready' : 'not_ready', queue: this.state.queue.length, cycles: this.state.metrics.cycles };
+  }
+
+  prometheusLines() {
+    const m = this.state.metrics;
+    const label = this.instanceName ? `{instance="${this.instanceName}"}` : '';
+    return [
+      `ccc_cycles_total${label} ${m.cycles || 0}`,
+      `ccc_issues_total${label} ${m.issues || 0}`,
+      `ccc_fixes_total${label} ${m.fixes || 0}`,
+      `ccc_failures_total${label} ${m.failures || 0}`,
+      `ccc_queue_length${label} ${this.state.queue.length}`,
+      `ccc_uptime_seconds${label} ${Math.floor((Date.now() - this._startedAt) / 1000)}`,
+      `ccc_last_reload_timestamp_seconds${label} ${this._lastReloadAt ? Math.floor(this._lastReloadAt / 1000) : 0}`,
+    ];
+  }
+
   startHealth() {
     const port = this.config.healthPort ?? 8080;
     this.healthServer = createServer((req, res) => {
       if (req.url === '/healthz' || req.url === '/livez') {
+        const h = this.healthStatus();
         res.writeHead(this.running ? 200 : 503);
-        res.end(JSON.stringify({
-          status: this.running ? 'ok' : 'stopping',
-          uptime: process.uptime(),
-        }));
+        res.end(JSON.stringify(h));
       } else if (req.url === '/readyz') {
-        const ready = this.running && this.dispatcher !== null;
-        res.writeHead(ready ? 200 : 503);
-        res.end(JSON.stringify({
-          status: ready ? 'ready' : 'not_ready',
-          queue: this.state.queue.length,
-          cycles: this.state.metrics.cycles,
-        }));
+        const r = this.readyStatus();
+        res.writeHead(r.status === 'ready' ? 200 : 503);
+        res.end(JSON.stringify(r));
       } else if (req.url === '/metrics') {
-        const m = this.state.metrics;
         const accept = req.headers.accept || '';
         if (accept.includes('application/json')) {
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(m));
+          res.end(JSON.stringify(this.state.metrics));
         } else {
-          // Prometheus text exposition format
           const lines = [
-            '# HELP ccc_cycles_total Total run cycles completed',
-            '# TYPE ccc_cycles_total counter',
-            `ccc_cycles_total ${m.cycles || 0}`,
-            '# HELP ccc_issues_total Total issues detected',
-            '# TYPE ccc_issues_total counter',
-            `ccc_issues_total ${m.issues || 0}`,
-            '# HELP ccc_fixes_total Total fixes applied',
-            '# TYPE ccc_fixes_total counter',
-            `ccc_fixes_total ${m.fixes || 0}`,
-            '# HELP ccc_failures_total Total failures',
-            '# TYPE ccc_failures_total counter',
-            `ccc_failures_total ${m.failures || 0}`,
-            '# HELP ccc_queue_length Current queue depth',
-            '# TYPE ccc_queue_length gauge',
-            `ccc_queue_length ${this.state.queue.length}`,
-            '# HELP ccc_uptime_seconds Seconds since manager started',
-            '# TYPE ccc_uptime_seconds gauge',
-            `ccc_uptime_seconds ${Math.floor((Date.now() - this._startedAt) / 1000)}`,
-            '# HELP ccc_last_reload_timestamp_seconds Unix timestamp of last config reload',
-            '# TYPE ccc_last_reload_timestamp_seconds gauge',
-            `ccc_last_reload_timestamp_seconds ${this._lastReloadAt ? Math.floor(this._lastReloadAt / 1000) : 0}`,
+            ...PROM_HEADERS,
+            ...this.prometheusLines(),
             '',
           ];
           res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
@@ -308,7 +325,7 @@ export class Manager {
     const interval = this.config.interval || 60000;
     this.log.info('Starting event loop', { interval });
 
-    this.startHealth();
+    if (!this._skipHealth) this.startHealth();
     this._watchConfig();
 
     await this.runCycle();
@@ -379,6 +396,94 @@ export class Manager {
   }
 }
 
+// Multi-instance orchestrator — runs multiple Manager instances with a shared health endpoint.
+export class MultiManager {
+  constructor(configPaths, options = {}) {
+    this.log = createLogger('multi-manager', { json: options.logJson });
+    this.healthPort = options.healthPort || 8080;
+    this.managers = configPaths.map(p => new Manager(resolve(p), { skipHealth: true }));
+    this.healthServer = null;
+  }
+
+  async start() {
+    // Init and start all instances (without individual health servers)
+    await Promise.all(this.managers.map(async m => {
+      await m.init();
+      m.running = true;
+      const interval = m.config.interval || 60000;
+      m.log.info('Starting event loop', { interval });
+      m._watchConfig();
+      await m.runCycle();
+      const timer = setInterval(() => {
+        if (m.running) m.runCycle().catch(err => m.log.error('Cycle error', { error: err.message }));
+      }, interval);
+      m.timers.push(timer);
+      for (const input of m.inputs) {
+        input.listen((task) => {
+          task.source = `input:${input.name}`;
+          task.id = task.id || `${input.name}-${Date.now()}`;
+          if (!m.state.isDuplicate(task.id)) {
+            m.state.enqueue(task);
+            m.log.info('Task received (listen)', { input: input.name, taskId: task.id, summary: task.summary || task.type });
+          }
+        }).catch(err => m.log.error('Listen error', { input: input.name, error: err.message }));
+      }
+    }));
+
+    this._startHealth();
+    this.log.info('All instances started', { count: this.managers.length, instances: this.managers.map(m => m.instanceName) });
+  }
+
+  _startHealth() {
+    this.healthServer = createServer((req, res) => {
+      if (req.url === '/healthz' || req.url === '/livez') {
+        const statuses = this.managers.map(m => m.healthStatus());
+        const allOk = statuses.every(s => s.status === 'ok');
+        res.writeHead(allOk ? 200 : 503);
+        res.end(JSON.stringify({ status: allOk ? 'ok' : 'degraded', instances: statuses }));
+      } else if (req.url === '/readyz') {
+        const statuses = this.managers.map(m => m.readyStatus());
+        const allReady = statuses.every(s => s.status === 'ready');
+        res.writeHead(allReady ? 200 : 503);
+        res.end(JSON.stringify({ status: allReady ? 'ready' : 'not_ready', instances: statuses }));
+      } else if (req.url === '/metrics') {
+        const accept = req.headers.accept || '';
+        if (accept.includes('application/json')) {
+          const merged = {};
+          for (const m of this.managers) {
+            merged[m.instanceName] = m.state.metrics;
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(merged));
+        } else {
+          const lines = [...PROM_HEADERS];
+          for (const m of this.managers) {
+            lines.push(...m.prometheusLines());
+          }
+          lines.push('');
+          res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
+          res.end(lines.join('\n'));
+        }
+      } else {
+        res.writeHead(404);
+        res.end('Not found');
+      }
+    });
+    this.healthServer.listen(this.healthPort, () => {
+      this.log.info('Shared health endpoint listening', { port: this.healthPort });
+    });
+  }
+
+  async stop() {
+    await Promise.all(this.managers.map(m => m.stop()));
+    if (this.healthServer) {
+      await new Promise(r => this.healthServer.close(r));
+      this.healthServer = null;
+    }
+    this.log.info('All instances stopped');
+  }
+}
+
 // CLI entry point
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   const args = process.argv.slice(2);
@@ -390,13 +495,16 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
     const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'));
     console.log(`ccc-manager v${pkg.version} — ${pkg.description}
 
-Usage: ccc-manager <config.yaml> [options]
+Usage: ccc-manager <config.yaml> [config2.yaml ...] [options]
+
+  Multiple configs run as isolated instances with a shared health endpoint.
 
 Options:
-  --validate        Validate config and exit (no start)
+  --validate        Validate config(s) and exit (no start)
   --dry-run         Init, run one cycle, print results, exit (no workers)
   --status          Print current queue/metrics from state/ and exit
   --list-components List available component types
+  --health-port N   Shared health port for multi-instance (default: 8080)
   --version         Print version and exit
   --help            Show this help`);
     process.exit(0);
@@ -427,68 +535,115 @@ Options:
   }
 
   if (flags.has('--status')) {
-    const { existsSync, readFileSync } = await import('node:fs');
-    const stateDir = resolve(ROOT, 'state');
-    const read = (f, fallback) => {
-      const p = resolve(stateDir, f);
-      if (!existsSync(p)) return fallback;
-      try { return JSON.parse(readFileSync(p, 'utf-8')); } catch { return fallback; }
+    const { existsSync, readFileSync, readdirSync } = await import('node:fs');
+    const stateRoot = resolve(ROOT, 'state');
+    const printInstance = (dir, label) => {
+      const read = (f, fallback) => {
+        const p = resolve(dir, f);
+        if (!existsSync(p)) return fallback;
+        try { return JSON.parse(readFileSync(p, 'utf-8')); } catch { return fallback; }
+      };
+      const queue = read('queue.json', []);
+      const metrics = read('metrics.json', {});
+      const history = read('history.json', []);
+      if (label) console.log(`\n--- ${label} ---`);
+      console.log(`Queue: ${queue.length} tasks`);
+      if (queue.length > 0) {
+        for (const t of queue) console.log(`  [${t.status}] ${t.id} — ${t.summary || t.type || '(no summary)'}`);
+      }
+      console.log(`History: ${history.length} entries`);
+      console.log(`Metrics: ${metrics.cycles ?? 0} cycles, ${metrics.issues ?? 0} issues, ${metrics.fixes ?? 0} fixes, ${metrics.failures ?? 0} failures`);
+      if (metrics.lastCycle) console.log(`Last cycle: ${new Date(metrics.lastCycle).toISOString()}`);
     };
-    const queue = read('queue.json', []);
-    const metrics = read('metrics.json', {});
-    const history = read('history.json', []);
-    console.log(`Queue: ${queue.length} tasks`);
-    if (queue.length > 0) {
-      for (const t of queue) console.log(`  [${t.status}] ${t.id} — ${t.summary || t.type || '(no summary)'}`);
+    if (existsSync(stateRoot)) {
+      // Check for per-instance subdirs
+      const entries = readdirSync(stateRoot, { withFileTypes: true });
+      const subdirs = entries.filter(e => e.isDirectory());
+      if (subdirs.length > 0) {
+        for (const sub of subdirs) printInstance(resolve(stateRoot, sub.name), sub.name);
+      } else {
+        printInstance(stateRoot);
+      }
+    } else {
+      console.log('No state directory found');
     }
-    console.log(`History: ${history.length} entries`);
-    console.log(`Metrics: ${metrics.cycles ?? 0} cycles, ${metrics.issues ?? 0} issues, ${metrics.fixes ?? 0} fixes, ${metrics.failures ?? 0} failures`);
-    if (metrics.lastCycle) console.log(`Last cycle: ${new Date(metrics.lastCycle).toISOString()}`);
     process.exit(0);
   }
 
-  const configPath = positional[0];
-  if (!configPath) {
-    console.error('Usage: ccc-manager <config.yaml> [--validate] [--dry-run] [--status] [--list-components] [--version] [--help]');
+  // Parse --health-port N
+  let healthPort = 8080;
+  const hpIdx = args.indexOf('--health-port');
+  if (hpIdx !== -1 && args[hpIdx + 1]) {
+    healthPort = parseInt(args[hpIdx + 1], 10);
+    // Remove from positional
+    const filtered = positional.filter(a => a !== args[hpIdx + 1]);
+    positional.length = 0;
+    positional.push(...filtered);
+  }
+
+  if (positional.length === 0) {
+    console.error('Usage: ccc-manager <config.yaml> [config2.yaml ...] [--validate] [--dry-run] [--status] [--list-components] [--version] [--help]');
     process.exit(1);
   }
 
   if (flags.has('--validate')) {
-    try {
-      loadConfig(resolve(configPath));
-      console.log('Config OK');
-      process.exit(0);
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
+    let ok = true;
+    for (const p of positional) {
+      try {
+        loadConfig(resolve(p));
+        console.log(`${p}: OK`);
+      } catch (err) {
+        console.error(`${p}: ${err.message}`);
+        ok = false;
+      }
     }
+    process.exit(ok ? 0 : 1);
   }
 
   if (flags.has('--dry-run')) {
-    const manager = new Manager(resolve(configPath));
-    manager.dryRun = true;
-    await manager.init();
-    console.log('[dry-run] Running one cycle (workers disabled)...');
-    await manager.runCycle();
-    const q = manager.state.queue;
-    const m = manager.state.metrics;
-    console.log(`[dry-run] Cycle complete: ${m.issues} issues, ${q.length} queued, ${m.fixes} fixes, ${m.failures} failures`);
-    if (q.length > 0) {
-      for (const t of q) console.log(`  [${t.status}] ${t.id} — ${t.summary || '(no summary)'}`);
+    for (const p of positional) {
+      const manager = new Manager(resolve(p));
+      manager.dryRun = true;
+      await manager.init();
+      console.log(`[dry-run] ${manager.instanceName}: Running one cycle (workers disabled)...`);
+      await manager.runCycle();
+      const q = manager.state.queue;
+      const m = manager.state.metrics;
+      console.log(`[dry-run] ${manager.instanceName}: ${m.issues} issues, ${q.length} queued, ${m.fixes} fixes, ${m.failures} failures`);
+      if (q.length > 0) {
+        for (const t of q) console.log(`  [${t.status}] ${t.id} — ${t.summary || '(no summary)'}`);
+      }
     }
     process.exit(0);
   }
 
-  const manager = new Manager(resolve(configPath));
-  const shutdown = () => manager.stop().then(() => process.exit(0));
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
-  // SIGHUP triggers config reload (K8s ConfigMap update pattern)
-  if (process.platform !== 'win32') {
-    process.on('SIGHUP', () => manager._reloadConfig());
+  // Single config — backward compatible (own health endpoint)
+  if (positional.length === 1) {
+    const manager = new Manager(resolve(positional[0]));
+    const shutdown = () => manager.stop().then(() => process.exit(0));
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+    if (process.platform !== 'win32') {
+      process.on('SIGHUP', () => manager._reloadConfig());
+    }
+    manager.start().catch(err => {
+      console.error(`[manager] Fatal: ${err.message}`);
+      process.exit(1);
+    });
+  } else {
+    // Multiple configs — use MultiManager with shared health
+    const multi = new MultiManager(positional, { healthPort });
+    const shutdown = () => multi.stop().then(() => process.exit(0));
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+    if (process.platform !== 'win32') {
+      process.on('SIGHUP', () => {
+        for (const m of multi.managers) m._reloadConfig();
+      });
+    }
+    multi.start().catch(err => {
+      console.error(`[multi-manager] Fatal: ${err.message}`);
+      process.exit(1);
+    });
   }
-  manager.start().catch(err => {
-    console.error(`[manager] Fatal: ${err.message}`);
-    process.exit(1);
-  });
 }
