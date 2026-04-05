@@ -178,6 +178,7 @@
 - [x] T114: Apply libuv drain fix to remaining test files (dispatch, e2e-bridge, inputs)
 - [x] T115: Fix run-all.js suite failure counting — distinguish libuv crash from test failure
 - [x] T116: Apply libuv drain fix to all 11 remaining test files
+- [x] T117: Version bump to v1.9.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
