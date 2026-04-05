@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ccc-manager
+  labels:
+    app: ccc-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ccc-manager
+  template:
+    metadata:
+      labels:
+        app: ccc-manager
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: ccc-manager
+          image: ccc-manager:latest
+          args: ["config/project.yaml"]
+          ports:
+            - name: health
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config/project.yaml
+              subPath: project.yaml
+              readOnly: true
+            - name: bridge
+              mountPath: /app/bridge
+            - name: state
+              mountPath: /app/state
+      volumes:
+        - name: config
+          configMap:
+            name: ccc-manager-config
+        - name: bridge
+          emptyDir: {}
+        - name: state
+          emptyDir: {}

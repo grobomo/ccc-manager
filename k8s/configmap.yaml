@@ -1,0 +1,33 @@
+# ConfigMap for project-specific config.
+# Edit the project.yaml data to match your project.
+# After applying changes, send SIGHUP to reload:
+#   kubectl exec deploy/ccc-manager -- kill -HUP 1
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ccc-manager-config
+data:
+  project.yaml: |
+    name: my-project
+    interval: 60000
+    healthPort: 8080
+
+    monitors:
+      health:
+        type: process
+        command: "curl -sf http://localhost:3000/healthz"
+
+    inputs:
+      bridge:
+        type: bridge
+        dir: /app/bridge/pending
+        completedDir: /app/bridge/done
+
+    dispatcher:
+      type: shtd
+
+    verifiers:
+      smoke:
+        type: test-suite
+        command: "curl -sf http://localhost:3000/readyz"
