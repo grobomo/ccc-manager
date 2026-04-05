@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.19.0 (2026-04-05)
+- README: update component table (17→20), test counts (476→581), add parallelDispatch + aggregateResults
+- Helm version reference updated to v1.18.0
+
 ## v1.18.0 (2026-04-05)
 - Logger JSON mode: filter undefined values from data before spread (consistency with text mode)
 - Tests: exec-helper unit tests (18), logger undefined filtering tests (JSON + text)

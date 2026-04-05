@@ -5,10 +5,10 @@
 **What was done this session:**
 - T155-T157: Code review of all 26 source files, DRY exec-helper, logger undefined filter, SQS listen resilience, v1.17.0 (PR #67)
 - T158-T160: exec-helper unit tests (18), logger JSON undefined fix, 7 new logger tests, v1.18.0 (PR #68)
-- 69 PRs merged total. v1.18.0 released.
+- T161-T162: README update (component table 17→20, test counts 476→581), v1.19.0
 
-**Current state:** v1.18.0 on main. 20 components, 21 suites, 581 tests. All CI green.
-**All tasks through T160 complete.**
+**Current state:** v1.19.0 on main. 20 components, 21 suites, 581 tests. All CI green.
+**All tasks through T162 complete.**
 
 **Next priorities:**
 - Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
