@@ -10,7 +10,7 @@ export class State {
     if (!existsSync(this.dir)) mkdirSync(this.dir, { recursive: true });
     this.queue = this._load('queue.json', []);
     this.history = this._load('history.json', []);
-    this.metrics = this._load('metrics.json', { started: Date.now(), cycles: 0, issues: 0, fixes: 0 });
+    this.metrics = this._load('metrics.json', { started: Date.now(), cycles: 0, issues: 0, fixes: 0, failures: 0 });
   }
 
   _path(file) { return join(this.dir, file); }
@@ -52,7 +52,8 @@ export class State {
     task.completedAt = Date.now();
     task.result = result;
     this.history.push(task);
-    this.metrics.fixes += result.passed ? 1 : 0;
+    if (result.passed) this.metrics.fixes++;
+    else this.metrics.failures++;
     this._save('queue.json', this.queue);
     this._save('history.json', this.history);
     this._save('metrics.json', this.metrics);
