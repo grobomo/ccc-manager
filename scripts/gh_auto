@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# gh_auto — Automatic GitHub account switching based on .github/publish.json
+#
+# Reads the project's publish.json to determine which GitHub account to use,
+# fetches the correct token via `gh auth token`, and forwards to gh or git.
+#
+# Usage:
+#   gh_auto push origin main            # → git push (with correct GH_TOKEN)
+#   gh_auto pr create --title "..."     # → gh pr create (with correct GH_TOKEN)
+#   gh_auto repo create ...             # → gh repo create (with correct GH_TOKEN)
+#   gh_auto pr merge 1 --squash        # → gh pr merge (with correct GH_TOKEN)
+#
+# Git subcommands (push, pull, fetch, clone, ls-remote) → forwarded to git
+# Everything else → forwarded to gh
+
+set -euo pipefail
+
+# Walk up from cwd to find .github/publish.json
+find_publish_json() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" && "$dir" != "." ]]; do
+    if [[ -f "$dir/.github/publish.json" ]]; then
+      echo "$dir/.github/publish.json"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+# Extract github_account from publish.json (no jq dependency)
+extract_account() {
+  local file="$1"
+  node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf-8')).github_account||''" "$file" 2>/dev/null
+}
+
+# Determine if this is a git subcommand
+GIT_SUBCOMMANDS="push pull fetch clone ls-remote"
+is_git_cmd() {
+  local cmd="$1"
+  for sub in $GIT_SUBCOMMANDS; do
+    [[ "$cmd" == "$sub" ]] && return 0
+  done
+  return 1
+}
+
+# --- Main ---
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: gh_auto <command> [args...]"
+  echo ""
+  echo "Git commands (push/pull/fetch/clone) → forwarded to git with correct token"
+  echo "All other commands → forwarded to gh with correct token"
+  echo ""
+  echo "Account is auto-detected from .github/publish.json"
+  exit 0
+fi
+
+# Find publish.json
+PUBLISH_JSON=""
+if PUBLISH_JSON=$(find_publish_json); then
+  ACCOUNT=$(extract_account "$PUBLISH_JSON")
+else
+  # No publish.json — use default (tmemu)
+  ACCOUNT="joel-ginsberg_tmemu"
+fi
+
+if [[ -z "$ACCOUNT" ]]; then
+  echo "[gh_auto] ERROR: Could not extract github_account from $PUBLISH_JSON" >&2
+  exit 1
+fi
+
+# Get token for the account
+TOKEN=$(gh auth token -u "$ACCOUNT" 2>/dev/null || true)
+if [[ -z "$TOKEN" ]]; then
+  echo "[gh_auto] ERROR: No token found for account '$ACCOUNT'. Run: gh auth login" >&2
+  exit 1
+fi
+
+export GH_TOKEN="$TOKEN"
+
+# Route to git or gh
+SUBCMD="$1"
+shift
+
+if is_git_cmd "$SUBCMD"; then
+  exec git "$SUBCMD" "$@"
+else
+  exec gh "$SUBCMD" "$@"
+fi
