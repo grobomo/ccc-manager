@@ -155,6 +155,9 @@
 ## Phase 28: Deployment Manifests
 - [x] T098: K8s deployment manifests — Deployment, ConfigMap, Service, ServiceMonitor
 
+## Phase 29: Package & Kustomize
+- [x] T099: Kustomization.yaml for kubectl apply -k, update package.json files
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

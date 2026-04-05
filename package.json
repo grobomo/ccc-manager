@@ -43,6 +43,8 @@
     "src/",
     "config/example.yaml",
     "config/grafana-dashboard.json",
+    "k8s/",
+    "Dockerfile",
     "scripts/demo.js"
   ]
 }
