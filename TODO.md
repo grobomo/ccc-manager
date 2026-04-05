@@ -186,6 +186,8 @@
 - [x] T118: Add healthcheck and validate scripts to package.json + files array
 - [x] T119: Test runner — show suite names in output for debugging
 - [x] T120: CHANGELOG.md — summarize all phases for consumers
+- [x] T121: Dockerfile — only copy example.yaml, not project-specific configs
+- [x] T122: Version bump to v1.10.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
