@@ -1,8 +1,9 @@
 # Manager config for rone-teams-poller
-# K8s pod monitoring + git bridge for SELF_REPAIR tasks
+# K8s pod monitoring + RONE bridge for SELF_REPAIR/REPLY tasks
 
 name: rone-teams-poller
 interval: 30000
+healthPort: 8081
 
 monitors:
   pod-health:
@@ -11,9 +12,10 @@ monitors:
     interval: 30000
 
 inputs:
-  bridge:
+  rone-bridge:
     type: bridge
-    path: /data/bridge/tasks
+    path: /data/rone-bridge/requests/pending
+    completedDir: /data/rone-bridge/requests/completed
 
 dispatcher:
   type: shtd
@@ -22,3 +24,10 @@ verifiers:
   tests:
     type: test-suite
     command: kubectl exec deploy/teams-poller -n hackathon-teams-poller -- node test/health.js
+
+workers:
+  default:
+    type: k8s
+    namespace: hackathon-teams-poller
+    pod: teams-poller-0
+    container: ccc-worker
