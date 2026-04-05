@@ -1,18 +1,16 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 17)
+## Session Handoff (2026-04-05, session 18)
 
 **What was done this session:**
-- T107: Healthcheck script — ops probe tool (PR #49)
-- T108: PVC for state persistence (PR #50)
-- T109-T111: Test reliability — healthPort ??, libuv drain, queue cleanup (PR #51)
-- T112: NetworkPolicy — K8s traffic restriction (PR #52)
-- T113-T116: Libuv drain fix for all test files + suite failure counting (PRs #53-#55)
-- T117: Version bump to v1.9.0 + GitHub release (PR #56)
-- Cleaned up stale branches and stashes
+- T118-T120: Package scripts, suite names, CHANGELOG (PR #57)
+- T121-T125: Dockerfile cleanup, CI workflow, README, Grafana in image (PR #58)
+- T126: Cleaned up 14 stale remote branches
+- T127: GitHub input added to rone-teams-poller.yaml
 
-**Current state:** v1.9.0 on main. 17 components, 359 tests across 15 suites (clean output), 56 PRs merged.
+**Current state:** v1.10.0 on main. 17 components, 359 tests across 15 suites, 58 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open)
+**Still TODO:** Create GitHub release for v1.10.0
 
 **Next priorities (zoom out):**
 - Real integration with rone-teams-poller: deploy to K8s, test with actual RONE bridge files
