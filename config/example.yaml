@@ -1,0 +1,35 @@
+# Example manager config — shows all supported fields.
+# Copy and customize per project.
+
+name: example
+interval: 60000
+
+# Monitors detect issues automatically
+monitors:
+  # Each key is the monitor instance name
+  # health:
+  #   type: pod-health
+  #   namespace: default
+  #   threshold: 3
+
+# Inputs receive tasks from external sources
+inputs:
+  # bridge:
+  #   type: bridge
+  #   path: /data/bridge/tasks
+
+# Dispatcher analyzes issues and distributes work
+dispatcher:
+  type: shtd
+
+# Verifiers confirm fixes were applied correctly
+verifiers:
+  # tests:
+  #   type: test-suite
+  #   command: npm test
+
+# Alert destinations
+alerts:
+  # teams:
+  #   type: teams
+  #   webhook: https://...

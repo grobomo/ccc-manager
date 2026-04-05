@@ -1,0 +1,23 @@
+# Manager config for claude-portable (self-managing golden image)
+# Monitors its own health, repairs itself
+
+name: claude-portable
+interval: 60000
+
+monitors:
+  self-health:
+    type: process
+    command: claude --version
+    interval: 60000
+  hooks-health:
+    type: process
+    command: node ~/.claude/hooks/run-pretooluse.js < /dev/null
+    interval: 300000
+
+dispatcher:
+  type: shtd
+
+verifiers:
+  self-test:
+    type: test-suite
+    command: node scripts/test/test-scaffold.js

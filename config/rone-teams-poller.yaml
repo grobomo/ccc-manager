@@ -1,0 +1,24 @@
+# Manager config for rone-teams-poller
+# K8s pod monitoring + git bridge for SELF_REPAIR tasks
+
+name: rone-teams-poller
+interval: 30000
+
+monitors:
+  pod-health:
+    type: process
+    command: kubectl get pods -n hackathon-teams-poller --no-headers | grep -v Running
+    interval: 30000
+
+inputs:
+  bridge:
+    type: bridge
+    path: /data/bridge/tasks
+
+dispatcher:
+  type: shtd
+
+verifiers:
+  tests:
+    type: test-suite
+    command: kubectl exec deploy/teams-poller -n hackathon-teams-poller -- node test/health.js

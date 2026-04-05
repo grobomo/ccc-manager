@@ -1,0 +1,180 @@
+#!/usr/bin/env node
+
+// CCC Manager — main runtime.
+// Loads project config, starts monitors and inputs, runs event loop.
+
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { loadConfig } from './config.js';
+import { State } from './state.js';
+import { Registry } from './registry.js';
+import { registerBuiltins } from './builtins.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '..');
+
+export class Manager {
+  constructor(configPath) {
+    this.config = loadConfig(configPath);
+    this.state = new State(resolve(ROOT, 'state'));
+    this.registry = new Registry();
+    this.monitors = [];
+    this.inputs = [];
+    this.dispatcher = null;
+    this.verifiers = [];
+    this.running = false;
+    this.timers = [];
+  }
+
+  async init() {
+    registerBuiltins(this.registry);
+
+    if (this.config.monitors) {
+      for (const [name, cfg] of Object.entries(this.config.monitors)) {
+        const MonitorClass = this.registry.getMonitor(cfg.type || name);
+        if (MonitorClass) {
+          this.monitors.push(new MonitorClass(name, cfg));
+        } else {
+          console.warn(`[manager] Unknown monitor type: ${cfg.type || name}`);
+        }
+      }
+    }
+
+    if (this.config.inputs) {
+      for (const [name, cfg] of Object.entries(this.config.inputs)) {
+        const InputClass = this.registry.getInput(cfg.type || name);
+        if (InputClass) {
+          this.inputs.push(new InputClass(name, cfg));
+        } else {
+          console.warn(`[manager] Unknown input type: ${cfg.type || name}`);
+        }
+      }
+    }
+
+    const dispType = this.config.dispatcher?.type || 'shtd';
+    const DispatcherClass = this.registry.getDispatcher(dispType);
+    if (DispatcherClass) {
+      this.dispatcher = new DispatcherClass(this.config.dispatcher || {});
+    }
+
+    if (this.config.verifiers) {
+      for (const [name, cfg] of Object.entries(this.config.verifiers)) {
+        const VerifierClass = this.registry.getVerifier(cfg.type || name);
+        if (VerifierClass) {
+          this.verifiers.push(new VerifierClass(name, cfg));
+        } else {
+          console.warn(`[manager] Unknown verifier type: ${cfg.type || name}`);
+        }
+      }
+    }
+
+    console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers`);
+  }
+
+  async runCycle() {
+    for (const monitor of this.monitors) {
+      try {
+        const issues = await monitor.check();
+        for (const issue of issues) {
+          issue.source = `monitor:${monitor.name}`;
+          issue.id = issue.id || `${monitor.name}-${Date.now()}`;
+          if (!this.state.isDuplicate(issue.id)) {
+            this.state.enqueue(issue);
+            this.state.metrics.issues++;
+            this.state._save('metrics.json', this.state.metrics);
+            console.log(`[monitor:${monitor.name}] Issue detected: ${issue.summary}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[monitor:${monitor.name}] Error: ${err.message}`);
+      }
+    }
+
+    for (const input of this.inputs) {
+      try {
+        const tasks = await input.poll();
+        for (const task of tasks) {
+          task.source = `input:${input.name}`;
+          task.id = task.id || `${input.name}-${Date.now()}`;
+          if (!this.state.isDuplicate(task.id)) {
+            this.state.enqueue(task);
+            console.log(`[input:${input.name}] Task received: ${task.summary || task.type}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[input:${input.name}] Error: ${err.message}`);
+      }
+    }
+
+    if (this.dispatcher) {
+      let task;
+      while ((task = this.state.dequeue())) {
+        try {
+          console.log(`[dispatcher] Processing: ${task.summary || task.id}`);
+          const plan = await this.dispatcher.analyze(task);
+          const result = await this.dispatcher.dispatch(plan, this.config);
+
+          let verified = { passed: true, details: 'No verifier configured' };
+          for (const verifier of this.verifiers) {
+            verified = await verifier.verify(task, result);
+            if (!verified.passed) break;
+          }
+
+          this.state.complete(task.id, verified);
+          console.log(`[manager] Task ${task.id}: ${verified.passed ? 'FIXED' : 'FAILED'}`);
+        } catch (err) {
+          console.error(`[dispatcher] Error processing ${task.id}: ${err.message}`);
+          this.state.complete(task.id, { passed: false, details: err.message });
+        }
+      }
+    }
+
+    this.state.recordCycle();
+  }
+
+  async start() {
+    await this.init();
+    this.running = true;
+    const interval = this.config.interval || 60000;
+    console.log(`[manager] Starting event loop (${interval}ms interval)`);
+
+    await this.runCycle();
+    const timer = setInterval(() => {
+      if (this.running) this.runCycle().catch(err => console.error(`[manager] Cycle error: ${err.message}`));
+    }, interval);
+    this.timers.push(timer);
+
+    for (const input of this.inputs) {
+      input.listen((task) => {
+        task.source = `input:${input.name}`;
+        task.id = task.id || `${input.name}-${Date.now()}`;
+        this.state.enqueue(task);
+      }).catch(err => console.error(`[input:${input.name}] Listen error: ${err.message}`));
+    }
+  }
+
+  async stop() {
+    this.running = false;
+    this.timers.forEach(t => clearInterval(t));
+    for (const input of this.inputs) {
+      await input.stop().catch(() => {});
+    }
+    console.log('[manager] Stopped');
+  }
+}
+
+// CLI entry point
+if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
+  const configPath = process.argv[2];
+  if (!configPath) {
+    console.error('Usage: node src/index.js <config.yaml>');
+    process.exit(1);
+  }
+  const manager = new Manager(resolve(configPath));
+  process.on('SIGINT', () => manager.stop());
+  process.on('SIGTERM', () => manager.stop());
+  manager.start().catch(err => {
+    console.error(`[manager] Fatal: ${err.message}`);
+    process.exit(1);
+  });
+}
