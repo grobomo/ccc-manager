@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.16.0 (2026-04-05)
+- Security: sanitize bridge writeResult requestId to prevent path traversal
+- Component table: 20 components (added SQS input, SQS dispatcher)
+- README: updated component table with all 20 components
+
 ## v1.15.0 (2026-04-05)
 - Task sharding: parallel dispatch with dependency graph (dependsOn), per-task worker selection
 - Sharder module: cartesian/round-robin/chunk strategies for splitting tasks across dimensions

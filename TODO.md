@@ -36,7 +36,7 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - Phase 7: Deploy & integrate (Dockerfile, unified test runner, docs)
 - Phase 8: gh_auto (auto GitHub account switching, enforcement hook)
 
-## Components (17 built-in)
+## Components (20 built-in)
 | Type | Name | File |
 |------|------|------|
 | Monitor | process | src/monitors/process.js |
@@ -46,14 +46,19 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 | Input | alert | src/inputs/alert.js |
 | Input | github | src/inputs/github.js |
 | Input | webhook | src/inputs/webhook.js |
+| Input | sqs | src/inputs/sqs.js |
 | Dispatcher | shtd | src/dispatcher/shtd.js |
 | Dispatcher | claude | src/dispatcher/claude.js |
+| Dispatcher | sqs | src/dispatcher/sqs.js |
 | Verifier | test-suite | src/verifiers/test-suite.js |
 | Worker | local | src/workers/local.js |
 | Worker | k8s | src/workers/k8s.js |
 | Worker | ec2 | src/workers/ec2.js |
 | Notifier | webhook | src/notifiers/webhook.js |
 | Notifier | file | src/notifiers/file.js |
+| Utility | sharder | src/dispatcher/sharder.js |
+| Utility | parallelDispatch | src/dispatcher/sharder.js |
+| Utility | aggregateResults | src/dispatcher/sharder.js |
 
 ## Phase 9: Harden Runtime
 - [x] T040: YAML parser — quoted strings, object lists, 31 regression tests
@@ -232,6 +237,10 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T143: Task sharding — dispatcher splits plans into parallel sub-tasks across multiple workers
 - [x] T144: Event-driven bridge — fs.watch for instant task pickup instead of polling interval
 - [x] T145: Version bump to v1.15.0, GitHub release
+
+## Phase 44: Code Review & Hardening
+- [x] T153: Security — sanitize bridge writeResult requestId (path traversal), update component table
+- [x] T154: Version bump to v1.16.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
