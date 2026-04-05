@@ -11,6 +11,7 @@ import { TestSuiteVerifier } from './verifiers/test-suite.js';
 import { LocalWorker } from './workers/local.js';
 import { K8sWorker } from './workers/k8s.js';
 import { EC2Worker } from './workers/ec2.js';
+import { WebhookNotifier } from './notifiers/webhook.js';
 
 export function registerBuiltins(registry) {
   registry.registerInput('bridge', BridgeInput);
@@ -24,4 +25,5 @@ export function registerBuiltins(registry) {
   registry.registerWorker('local', LocalWorker);
   registry.registerWorker('k8s', K8sWorker);
   registry.registerWorker('ec2', EC2Worker);
+  registry.registerNotifier('webhook', WebhookNotifier);
 }

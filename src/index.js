@@ -24,6 +24,7 @@ export class Manager {
     this.dispatcher = null;
     this.verifiers = [];
     this.workers = {};
+    this.notifiers = [];
     this.running = false;
     this.timers = [];
     this.healthServer = null;
@@ -82,8 +83,19 @@ export class Manager {
       }
     }
 
+    if (this.config.notifiers) {
+      for (const [name, cfg] of Object.entries(this.config.notifiers)) {
+        const NotifierClass = this.registry.getNotifier(cfg.type || name);
+        if (NotifierClass) {
+          this.notifiers.push(new NotifierClass(name, cfg));
+        } else {
+          console.warn(`[manager] Unknown notifier type: ${cfg.type || name}`);
+        }
+      }
+    }
+
     const workerCount = Object.keys(this.workers).length;
-    console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers, ${workerCount} workers`);
+    console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers, ${workerCount} workers, ${this.notifiers.length} notifiers`);
   }
 
   async _processTask(task) {
@@ -100,9 +112,22 @@ export class Manager {
 
       this.state.complete(task.id, verified);
       console.log(`[manager] Task ${task.id}: ${verified.passed ? 'FIXED' : 'FAILED'}`);
+      await this._notify(task, verified);
     } catch (err) {
       console.error(`[dispatcher] Error processing ${task.id}: ${err.message}`);
-      this.state.complete(task.id, { passed: false, details: err.message });
+      const failResult = { passed: false, details: err.message };
+      this.state.complete(task.id, failResult);
+      await this._notify(task, failResult);
+    }
+  }
+
+  async _notify(task, result) {
+    for (const notifier of this.notifiers) {
+      try {
+        await notifier.notify(task, result);
+      } catch (err) {
+        console.error(`[notify:${notifier.name}] Error: ${err.message}`);
+      }
     }
   }
 
