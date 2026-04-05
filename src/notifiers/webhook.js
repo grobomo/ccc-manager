@@ -1,10 +1,13 @@
 // WebhookNotifier — posts task results to Teams/Slack webhook URLs.
 // Config: { url, format: 'teams'|'slack'|'json' }
 
-export class WebhookNotifier {
+import { Notifier } from '../base.js';
+
+export class WebhookNotifier extends Notifier {
   constructor(name, config) {
-    this.name = name;
+    super(name, config);
     this.url = config.url;
+    if (!this.url) throw new Error('WebhookNotifier requires config.url');
     this.format = config.format || 'json';
   }
 
