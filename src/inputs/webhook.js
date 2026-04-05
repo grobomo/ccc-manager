@@ -3,8 +3,10 @@
 // Config: { port, path, secret }
 
 import { createServer } from 'node:http';
-import { createHmac } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Input } from '../base.js';
+
+const MAX_BODY_BYTES = 1024 * 1024; // 1 MB
 
 export class WebhookInput extends Input {
   constructor(name, config) {
@@ -30,13 +32,26 @@ export class WebhookInput extends Input {
       }
 
       let body = '';
-      req.on('data', chunk => { body += chunk; });
+      let bytes = 0;
+      req.on('data', chunk => {
+        bytes += chunk.length;
+        if (bytes > MAX_BODY_BYTES) {
+          res.writeHead(413);
+          res.end(JSON.stringify({ error: 'Payload too large' }));
+          req.destroy();
+          return;
+        }
+        body += chunk;
+      });
       req.on('end', () => {
-        // Validate HMAC signature if secret configured
+        if (bytes > MAX_BODY_BYTES) return; // already responded 413
+
+        // Validate HMAC signature if secret configured (timing-safe)
         if (this.secret) {
           const sig = req.headers['x-signature'] || '';
           const expected = createHmac('sha256', this.secret).update(body).digest('hex');
-          if (sig !== expected) {
+          if (sig.length !== expected.length ||
+              !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
             res.writeHead(403);
             res.end(JSON.stringify({ error: 'Invalid signature' }));
             return;

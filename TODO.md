@@ -22,7 +22,7 @@
 - Phase 7: Deploy & integrate (Dockerfile, unified test runner, docs)
 - Phase 8: gh_auto (auto GitHub account switching, enforcement hook)
 
-## Components (10 built-in)
+## Components (14 built-in)
 | Type | Name | File |
 |------|------|------|
 | Monitor | process | src/monitors/process.js |
@@ -30,11 +30,13 @@
 | Input | bridge | src/inputs/bridge.js |
 | Input | alert | src/inputs/alert.js |
 | Input | github | src/inputs/github.js |
+| Input | webhook | src/inputs/webhook.js |
 | Dispatcher | shtd | src/dispatcher/shtd.js |
 | Verifier | test-suite | src/verifiers/test-suite.js |
 | Worker | local | src/workers/local.js |
 | Worker | k8s | src/workers/k8s.js |
 | Worker | ec2 | src/workers/ec2.js |
+| Notifier | webhook | src/notifiers/webhook.js |
 
 ## Phase 9: Harden Runtime
 - [x] T040: YAML parser — quoted strings, object lists, 31 regression tests
@@ -58,6 +60,10 @@
 - [x] T053: Add webhook input (HTTP POST → task queue) for external CI/CD triggers
 - [x] T054: Notification output — post results to Teams/Slack via webhook
 - [x] T055: Add retry logic — failed tasks retry N times before marking as failed
+
+## Phase 12: Security Hardening
+- [x] T056: WebhookInput — add body size limit (1MB) and timing-safe HMAC comparison
+- [x] T057: Update component counts, bump version to 1.1.0
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
