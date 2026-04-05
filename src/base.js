@@ -51,6 +51,17 @@ export class Dispatcher {
   }
 }
 
+export class Notifier {
+  constructor(name, config) {
+    this.name = name;
+    this.config = config;
+  }
+
+  async notify(task, result) {
+    throw new Error(`${this.name}: notify() not implemented`);
+  }
+}
+
 export class Verifier {
   constructor(name, config) {
     this.name = name;

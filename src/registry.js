@@ -7,6 +7,7 @@ export class Registry {
     this._dispatchers = new Map();
     this._verifiers = new Map();
     this._workers = new Map();
+    this._notifiers = new Map();
   }
 
   registerMonitor(type, cls) { this._monitors.set(type, cls); }
@@ -14,16 +15,19 @@ export class Registry {
   registerDispatcher(type, cls) { this._dispatchers.set(type, cls); }
   registerVerifier(type, cls) { this._verifiers.set(type, cls); }
   registerWorker(type, cls) { this._workers.set(type, cls); }
+  registerNotifier(type, cls) { this._notifiers.set(type, cls); }
 
   getMonitor(type) { return this._monitors.get(type) || null; }
   getInput(type) { return this._inputs.get(type) || null; }
   getDispatcher(type) { return this._dispatchers.get(type) || null; }
   getVerifier(type) { return this._verifiers.get(type) || null; }
   getWorker(type) { return this._workers.get(type) || null; }
+  getNotifier(type) { return this._notifiers.get(type) || null; }
 
   listMonitors() { return [...this._monitors.keys()]; }
   listInputs() { return [...this._inputs.keys()]; }
   listDispatchers() { return [...this._dispatchers.keys()]; }
   listVerifiers() { return [...this._verifiers.keys()]; }
   listWorkers() { return [...this._workers.keys()]; }
+  listNotifiers() { return [...this._notifiers.keys()]; }
 }
