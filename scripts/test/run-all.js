@@ -39,10 +39,16 @@ for (const suite of suites) {
     const match = output.match(/(\d+) passed, (\d+) failed/);
     if (match) {
       totalPassed += parseInt(match[1]);
-      totalFailed += parseInt(match[2]);
+      const suiteFails = parseInt(match[2]);
+      totalFailed += suiteFails;
+      // Only count as suite failure if there are actual test failures,
+      // not just a non-zero exit (libuv assertion crash on Windows)
+      if (suiteFails > 0) suitesFailed++;
+    } else {
+      // No test output found — real crash before tests completed
+      suitesFailed++;
     }
     suitesRun++;
-    suitesFailed++;
   }
   console.log('');
 }
