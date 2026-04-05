@@ -1,17 +1,13 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 14)
+## Session Handoff (2026-04-05, session 15)
 
 **What was done this session:**
-- T095: CLI flags — --help, --version, --validate (PR #40)
-- T096: CLI --list-components (PR #41)
-- T097: Version bump to v1.7.0 + GitHub release (PR #42)
-- T098: K8s deployment manifests — Deployment, ConfigMap, Service, ServiceMonitor (PR #43)
-- T099: Kustomization.yaml + package.json files update (PR #44)
-- Full code review of all 23 source files — no issues found
+- T100: Fix dedup bypass in listen callback — webhook tasks skipped isDuplicate
+- T101-T103: CLI --dry-run, --status flags + --status no-config fix (PR #45)
+- T104: Version bump to v1.8.0 + GitHub release
 
-**Current state:** v1.7.0 on main. 17 components, 351 tests across 15 suites, 45 PRs merged. GitHub releases for v1.6.0 and v1.7.0.
-**All source files code-reviewed, no issues. YAML parser verified against all configs. Project is deployment-ready.**
+**Current state:** v1.8.0 on main. 17 components, 358 tests across 15 suites, 47 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
@@ -164,6 +160,7 @@
 - [x] T101: CLI --dry-run flag — run one cycle, log actions, exit without executing workers
 - [x] T102: CLI --status flag — read state/ directory, print queue/metrics without starting
 - [x] T103: Fix --status requiring config arg — move before configPath check
+- [x] T104: Version bump to v1.8.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
