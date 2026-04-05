@@ -116,8 +116,66 @@ async function main() {
   assert(failIssues.length === 1, 'Failed command = 1 issue');
   assert(failIssues[0].severity === 'high', `Issue severity: ${failIssues[0]?.severity}`);
 
-  // 4. Test auto-registration
-  console.log('\n4. Testing auto-registration...');
+  // 4. Test WebhookInput
+  console.log('\n4. Testing WebhookInput...');
+  const { WebhookInput } = await import('../../src/inputs/webhook.js');
+  assert(typeof WebhookInput === 'function', 'WebhookInput exported');
+
+  const webhookPort = 19876 + Math.floor(Math.random() * 1000);
+  const webhook = new WebhookInput('ci-hook', { port: webhookPort, path: '/webhook', secret: 'test-key' });
+  const received = [];
+  await webhook.listen(task => received.push(task));
+
+  // POST a valid task with correct HMAC
+  const { createHmac } = await import('node:crypto');
+  const payload = JSON.stringify({ id: 'ci-123', type: 'CI_FAILURE', summary: 'Build failed' });
+  const sig = createHmac('sha256', 'test-key').update(payload).digest('hex');
+
+  const res1 = await fetch(`http://127.0.0.1:${webhookPort}/webhook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-signature': sig },
+    body: payload
+  });
+  assert(res1.status === 202, `Valid POST → 202 (got ${res1.status})`);
+  const json1 = await res1.json();
+  assert(json1.accepted === true, 'Response accepted: true');
+  assert(json1.taskId === 'ci-123', `Task ID: ${json1.taskId}`);
+  assert(received.length === 1, `Callback fired (${received.length})`);
+
+  // POST with bad signature
+  const res2 = await fetch(`http://127.0.0.1:${webhookPort}/webhook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-signature': 'bad' },
+    body: payload
+  });
+  assert(res2.status === 403, `Bad signature → 403 (got ${res2.status})`);
+
+  // POST invalid JSON
+  const badPayload = 'not-json';
+  const badSig = createHmac('sha256', 'test-key').update(badPayload).digest('hex');
+  const res3 = await fetch(`http://127.0.0.1:${webhookPort}/webhook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-signature': badSig },
+    body: badPayload
+  });
+  assert(res3.status === 400, `Invalid JSON → 400 (got ${res3.status})`);
+
+  // GET wrong path
+  const res4 = await fetch(`http://127.0.0.1:${webhookPort}/wrong`);
+  assert(res4.status === 404, `Wrong path → 404 (got ${res4.status})`);
+
+  // poll() drains queue
+  const polled = await webhook.poll();
+  assert(polled.length === 1, `poll() returned ${polled.length} task(s)`);
+  assert(polled[0].id === 'ci-123', 'Polled task ID matches');
+
+  const empty = await webhook.poll();
+  assert(empty.length === 0, 'Second poll() returns empty');
+
+  await webhook.stop();
+
+  // 5. Test auto-registration
+  console.log('\n5. Testing auto-registration...');
   const { Registry } = await import('../../src/registry.js');
   const { registerBuiltins } = await import('../../src/builtins.js');
   const reg = new Registry();
@@ -126,6 +184,7 @@ async function main() {
   assert(reg.getInput('bridge') === BridgeInput, 'BridgeInput registered as "bridge"');
   assert(reg.getInput('alert') === AlertInput, 'AlertInput registered as "alert"');
   assert(reg.getMonitor('process') === ProcessMonitor, 'ProcessMonitor registered as "process"');
+  assert(reg.getInput('webhook') === WebhookInput, 'WebhookInput registered as "webhook"');
 
   // Cleanup
   if (existsSync(tmpDir)) rmSync(tmpDir, { recursive: true });
