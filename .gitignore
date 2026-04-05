@@ -6,3 +6,4 @@ archive/
 SESSION_STATE.md
 .demo-tmp/
 .test-tmp-*/
+__pycache__/
