@@ -3,3 +3,6 @@ state/
 archive/
 *.log
 .env
+SESSION_STATE.md
+.demo-tmp/
+.test-tmp-*/
