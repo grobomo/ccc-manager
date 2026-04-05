@@ -12,12 +12,13 @@ export function createLogger(component, options = {}) {
   function emit(lvl, msg, data) {
     if ((levels[lvl] ?? 1) < minLevel) return;
     if (json) {
+      const clean = data ? Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined)) : {};
       const entry = {
         ts: new Date().toISOString(),
         level: lvl,
         component,
         msg,
-        ...data
+        ...clean
       };
       process.stderr.write(JSON.stringify(entry) + '\n');
     } else {
