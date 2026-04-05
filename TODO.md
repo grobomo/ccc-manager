@@ -165,6 +165,11 @@
 - [x] T107: Healthcheck script — standalone ops tool to probe running manager (healthz/readyz/metrics)
 - [x] T108: PersistentVolumeClaim for state — survive pod restarts, optional emptyDir fallback
 
+## Phase 33: Test Suite Reliability
+- [x] T109: Fix healthPort 0 treated as falsy — use ?? instead of || in startHealth()
+- [x] T110: Fix test-notifiers libuv crash — delay process.exit for socket drain on Windows
+- [x] T111: Fix test-hot-reload-prom queue pollution — clear shared state before Prometheus test
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

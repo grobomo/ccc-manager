@@ -160,6 +160,10 @@ console.log('6. Prometheus text exposition format...');
 {
   const { Manager } = await import('../../src/index.js');
 
+  // Clear shared state queue so other test suites don't pollute queue length
+  const queueFile = resolve(ROOT, 'state', 'queue.json');
+  if (existsSync(queueFile)) unlinkSync(queueFile);
+
   const tmpDir = resolve(ROOT, 'state', '_test_prom');
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
   const tmpConfig = resolve(tmpDir, 'test-prom.yaml');
@@ -287,4 +291,5 @@ interval: 5000
 }
 
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-if (failed > 0) process.exit(1);
+// Explicit exit required — Manager instances leave open handles (file watchers, timers)
+process.exit(failed > 0 ? 1 : 0);
