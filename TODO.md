@@ -157,6 +157,9 @@
 - [x] T104: Version bump to v1.8.0, GitHub release
 - [x] T105: GitHubInput execFileSync — eliminate shell injection vector in gh CLI call
 
+## Phase 31: Container Security
+- [x] T106: Dockerfile non-root user + K8s securityContext (runAsNonRoot, readOnlyRootFilesystem)
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
