@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ccc-manager
+  labels:
+    app: ccc-manager
+spec:
+  podSelector:
+    matchLabels:
+      app: ccc-manager
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow Prometheus scraping and health probes on port 8080
+    - ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    # Allow DNS resolution
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow HTTPS (GitHub API, webhook notifiers, Claude API)
+    - ports:
+        - port: 443
+          protocol: TCP
+    # Allow HTTP (webhook notifiers on non-TLS endpoints)
+    - ports:
+        - port: 80
+          protocol: TCP
+    # Allow K8s API (kubectl exec for K8sWorker)
+    - ports:
+        - port: 6443
+          protocol: TCP

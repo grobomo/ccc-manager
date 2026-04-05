@@ -170,6 +170,9 @@
 - [x] T110: Fix test-notifiers libuv crash — delay process.exit for socket drain on Windows
 - [x] T111: Fix test-hot-reload-prom queue pollution — clear shared state before Prometheus test
 
+## Phase 34: K8s Network Security
+- [x] T112: NetworkPolicy — restrict ingress to health/metrics port, controlled egress (DNS, HTTPS, K8s API)
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
