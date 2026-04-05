@@ -246,6 +246,30 @@ test('--list-components shows all component types', () => {
   assert.ok(out.includes('k8s'));
 });
 
+test('--dry-run runs one cycle and exits', () => {
+  const out = execFileSync('node', [CLI, '--dry-run', resolve(ROOT, 'config/example.yaml')], { encoding: 'utf-8' });
+  assert.ok(out.includes('[dry-run]'), 'Output includes dry-run marker');
+  assert.ok(out.includes('Cycle complete'), 'Output includes cycle summary');
+});
+
+test('--status prints queue and metrics', () => {
+  const out = execFileSync('node', [CLI, '--status', resolve(ROOT, 'config/example.yaml')], { encoding: 'utf-8' });
+  assert.ok(out.includes('Queue:'), 'Output includes Queue');
+  assert.ok(out.includes('Metrics:'), 'Output includes Metrics');
+});
+
+test('--status works without config arg', () => {
+  const out = execFileSync('node', [CLI, '--status'], { encoding: 'utf-8' });
+  assert.ok(out.includes('Queue:'), 'Output includes Queue');
+  assert.ok(out.includes('Metrics:'), 'Output includes Metrics');
+});
+
+test('--help includes --dry-run and --status', () => {
+  const out = execFileSync('node', [CLI, '--help'], { encoding: 'utf-8' });
+  assert.ok(out.includes('--dry-run'), 'Help includes --dry-run');
+  assert.ok(out.includes('--status'), 'Help includes --status');
+});
+
 test('No args prints usage and exits 1', () => {
   try {
     execFileSync('node', [CLI], { encoding: 'utf-8' });

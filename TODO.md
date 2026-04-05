@@ -161,8 +161,9 @@
 ## Phase 30: Bug Fix & CLI
 
 - [x] T100: Fix dedup bypass in listen callback — webhook tasks skip isDuplicate check
-- [ ] T101: CLI --dry-run flag — run one cycle, log actions, exit without executing workers
-- [ ] T102: CLI --status flag — read state/ directory, print queue/metrics without starting
+- [x] T101: CLI --dry-run flag — run one cycle, log actions, exit without executing workers
+- [x] T102: CLI --status flag — read state/ directory, print queue/metrics without starting
+- [x] T103: Fix --status requiring config arg — move before configPath check
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
