@@ -5,8 +5,11 @@
 - Sharder module: cartesian/round-robin/chunk strategies for splitting tasks across dimensions
 - parallelDispatch + aggregateResults for distributed work (EP incident response ready)
 - Event-driven bridge: fs.watch for instant task pickup (no more polling delay)
+- Priority-aware queue: critical/high/normal/low levels, highest priority dequeued first
+- SQS input: receive tasks from AWS SQS with long-polling and message deletion
+- SQS dispatcher: distribute sharded work units via SQS task/result queues
 - DRY: bridge _readFile extracted, poll() and listen() share logic
-- 19 test suites, 476+ tests total
+- 20 components, 19+ test suites, 511+ tests total
 
 ## v1.14.0 (2026-04-05)
 - Helm chart for one-command K8s deployment (`helm install ccc helm/ccc-manager/`)

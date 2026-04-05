@@ -19,10 +19,10 @@ EP incident response project needs a reusable dispatcher/distribution framework 
 Currently blocked because distribution logic doesn't exist as a pluggable component.
 
 - [x] T148 Enhance T143 sharding for EP: Sharder class with cartesian/chunk/round-robin, EP test (3×3×3=27 units)
-- [ ] T149 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
-- [ ] T150 Add SQS-backed dispatcher mode: EC2Worker exists, but need dispatcher that queues to SQS instead of locally. EP fleet uses SQS for task/result queues.
+- [x] T149 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
+- [x] T150 Add SQS-backed dispatcher mode: SQSDispatcher + SQSInput — task/result queues via AWS CLI
 - [x] T151 Add result aggregation: aggregateResults() with custom merge function, status rollup
-- [ ] T152 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
+- [x] T152 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
