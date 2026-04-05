@@ -11,7 +11,7 @@
 - T092: Version bump to v1.6.0 (PR #39)
 - Full code review of all 23 source files — no remaining issues
 
-**Current state:** v1.6.0 on main. 17 components, 350 tests across 15 suites, 41 PRs merged. GitHub release published.
+**Current state:** v1.7.0 on main. 17 components, 351 tests across 15 suites, 43 PRs merged. GitHub release published.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
@@ -150,6 +150,7 @@
 ## Phase 27: CLI Polish
 - [x] T095: CLI flags — --help, --version, --validate for ops deployment scripts
 - [x] T096: CLI --list-components flag — discover available component types for config authoring
+- [x] T097: Version bump to v1.7.0, GitHub release
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
