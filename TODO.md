@@ -8,7 +8,7 @@
 - T074: Fixed marketplace PR #76 Copilot review comments (SKILL.md frontmatter, counts)
 - 271 tests across 13 suites, 0 failures, 32 PRs merged
 
-**Current state:** v1.3.0 on main. 15 components, 271 tests across 13 suites, 32 PRs merged.
+**Current state:** v1.4.0 on main. 17 components, 294 tests across 14 suites, 34 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
@@ -26,11 +26,12 @@
 - Phase 7: Deploy & integrate (Dockerfile, unified test runner, docs)
 - Phase 8: gh_auto (auto GitHub account switching, enforcement hook)
 
-## Components (15 built-in)
+## Components (17 built-in)
 | Type | Name | File |
 |------|------|------|
 | Monitor | process | src/monitors/process.js |
 | Monitor | log | src/monitors/log.js |
+| Monitor | cron | src/monitors/cron.js |
 | Input | bridge | src/inputs/bridge.js |
 | Input | alert | src/inputs/alert.js |
 | Input | github | src/inputs/github.js |
@@ -42,6 +43,7 @@
 | Worker | k8s | src/workers/k8s.js |
 | Worker | ec2 | src/workers/ec2.js |
 | Notifier | webhook | src/notifiers/webhook.js |
+| Notifier | file | src/notifiers/file.js |
 
 ## Phase 9: Harden Runtime
 - [x] T040: YAML parser — quoted strings, object lists, 31 regression tests
@@ -103,6 +105,10 @@
 - [x] T075: K8sWorker command injection — quote task.command in kubectl exec
 - [x] T076: WebhookNotifier use structured logger instead of console.error
 - [x] T077: ProcessMonitor — truncate command in issue summary to avoid leaking secrets
+
+## Phase 20: Extended Components
+- [x] T078: Cron monitor — run checks on independent schedule (cron expression)
+- [x] T079: File notifier — write results to disk for bridge consumption
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
