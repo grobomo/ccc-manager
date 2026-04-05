@@ -37,11 +37,11 @@ async function main() {
     container: 'main'
   });
 
-  const cmd = k8s._buildCommand({ command: 'echo hello' });
-  assert(cmd.includes('test-ns'), `Command includes namespace: ${cmd}`);
-  assert(cmd.includes('test-pod'), 'Command includes pod');
-  assert(cmd.includes('-c main'), 'Command includes container');
-  assert(cmd.startsWith('kubectl exec'), 'Command starts with kubectl exec');
+  const args = k8s._buildArgs({ command: 'echo hello' });
+  assert(args.includes('-n') && args.includes('test-ns'), `Args include namespace`);
+  assert(args.includes('test-pod'), 'Args include pod');
+  assert(args.includes('-c') && args.includes('main'), 'Args include container');
+  assert(args[0] === 'exec', 'Args start with exec (kubectl is the binary)');
 
   // Test no-command task
   const k8sNoCmd = await k8s.execute({ id: 'k8s-1' });
@@ -56,7 +56,33 @@ async function main() {
   const { EC2Worker } = await import('../../src/workers/ec2.js');
   assert(typeof EC2Worker === 'function', 'EC2Worker exported');
 
-  // Test with mock ssh (node -e)
+  // Test SSH args building (no shell interpretation)
+  const ec2ssh = new EC2Worker({
+    host: '10.0.0.1',
+    user: 'deploy',
+    method: 'ssh',
+    keyFile: '/path/to/key.pem'
+  });
+  const sshArgs = ec2ssh._buildArgs({ command: 'echo hello && whoami' });
+  assert(sshArgs.cmd === 'ssh', 'SSH uses ssh binary');
+  assert(sshArgs.args.includes('-i') && sshArgs.args.includes('/path/to/key.pem'), 'SSH includes key file');
+  assert(sshArgs.args.includes('deploy@10.0.0.1'), 'SSH includes user@host');
+  // Command should be passed as a single arg (no shell expansion locally)
+  assert(sshArgs.args[sshArgs.args.length - 1] === 'echo hello && whoami', 'SSH command is single arg (no local shell)');
+
+  // Test SSM args building
+  const ec2ssm = new EC2Worker({
+    instanceId: 'i-1234567890',
+    method: 'ssm'
+  });
+  const ssmArgs = ec2ssm._buildArgs({ command: 'systemctl restart app' });
+  assert(ssmArgs.cmd === 'aws', 'SSM uses aws binary');
+  assert(ssmArgs.args.includes('--instance-ids') && ssmArgs.args.includes('i-1234567890'), 'SSM includes instance ID');
+  const paramsIdx = ssmArgs.args.indexOf('--parameters');
+  const paramsJson = JSON.parse(ssmArgs.args[paramsIdx + 1]);
+  assert(Array.isArray(paramsJson.commands) && paramsJson.commands[0] === 'systemctl restart app', 'SSM parameters format correct');
+
+  // Test with mock local execution
   const ec2 = new EC2Worker({
     host: 'localhost',
     user: 'test',

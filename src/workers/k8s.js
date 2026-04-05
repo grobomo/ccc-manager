@@ -1,7 +1,7 @@
 // K8sWorker — dispatch tasks via kubectl exec.
 // Configurable namespace, pod, container.
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { Worker } from './base.js';
 
 export class K8sWorker extends Worker {
@@ -13,13 +13,13 @@ export class K8sWorker extends Worker {
     this.kubectlPath = config.kubectlPath || 'kubectl';
   }
 
-  _buildCommand(task) {
-    const parts = [this.kubectlPath, 'exec'];
-    if (this.namespace) parts.push('-n', this.namespace);
-    if (this.container) parts.push('-c', this.container);
-    // Use sh -c with JSON-quoted command to prevent shell injection
-    parts.push(this.pod, '--', 'sh', '-c', JSON.stringify(task.command));
-    return parts.join(' ');
+  _buildArgs(task) {
+    const args = ['exec'];
+    if (this.namespace) args.push('-n', this.namespace);
+    if (this.container) args.push('-c', this.container);
+    // execFileSync passes each arg directly — no local shell interpretation
+    args.push(this.pod, '--', 'sh', '-c', task.command);
+    return args;
   }
 
   async execute(task) {
@@ -27,9 +27,9 @@ export class K8sWorker extends Worker {
       return { success: true, output: 'No command (investigation task)', taskId: task.id };
     }
 
-    const cmd = this._buildCommand(task);
+    const args = this._buildArgs(task);
     try {
-      const output = execSync(cmd, {
+      const output = execFileSync(this.kubectlPath, args, {
         stdio: 'pipe',
         timeout: this.config.timeout || 120000
       }).toString();

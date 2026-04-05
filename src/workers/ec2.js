@@ -1,7 +1,7 @@
 // EC2Worker — dispatch tasks via SSH or AWS SSM.
 // method: 'ssh' (default), 'ssm', or 'local' (for testing).
 
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { Worker } from './base.js';
 
 export class EC2Worker extends Worker {
@@ -14,20 +14,24 @@ export class EC2Worker extends Worker {
     this.instanceId = config.instanceId; // For SSM
   }
 
-  _buildCommand(task) {
-    if (this.method === 'local') {
-      return task.command;
-    }
+  _buildArgs(task) {
     if (this.method === 'ssm') {
-      // Use JSON array format to avoid shell injection via task.command
-      const cmds = JSON.stringify([task.command]);
-      return `aws ssm send-command --instance-ids ${this.instanceId} --document-name AWS-RunShellScript --parameters ${JSON.stringify('commands=' + cmds)} --output text`;
+      return {
+        cmd: 'aws',
+        args: [
+          'ssm', 'send-command',
+          '--instance-ids', this.instanceId,
+          '--document-name', 'AWS-RunShellScript',
+          '--parameters', JSON.stringify({ commands: [task.command] }),
+          '--output', 'text'
+        ]
+      };
     }
-    // SSH — quote the command to prevent shell expansion on the remote host
-    const parts = ['ssh', '-o', 'StrictHostKeyChecking=no', '-o', 'ConnectTimeout=10'];
-    if (this.keyFile) parts.push('-i', this.keyFile);
-    parts.push(`${this.user}@${this.host}`, JSON.stringify(task.command));
-    return parts.join(' ');
+    // SSH — pass command as last arg; execFileSync avoids local shell interpretation
+    const args = ['-o', 'StrictHostKeyChecking=no', '-o', 'ConnectTimeout=10'];
+    if (this.keyFile) args.push('-i', this.keyFile);
+    args.push(`${this.user}@${this.host}`, task.command);
+    return { cmd: 'ssh', args };
   }
 
   async execute(task) {
@@ -35,13 +39,22 @@ export class EC2Worker extends Worker {
       return { success: true, output: 'No command (investigation task)', taskId: task.id };
     }
 
-    const cmd = this._buildCommand(task);
     try {
-      const output = execSync(cmd, {
-        stdio: 'pipe',
-        timeout: this.config.timeout || 120000,
-        shell: true
-      }).toString();
+      let output;
+      if (this.method === 'local') {
+        // Local mode: shell needed to interpret command strings
+        output = execSync(task.command, {
+          stdio: 'pipe',
+          timeout: this.config.timeout || 120000,
+          shell: true
+        }).toString();
+      } else {
+        const { cmd, args } = this._buildArgs(task);
+        output = execFileSync(cmd, args, {
+          stdio: 'pipe',
+          timeout: this.config.timeout || 120000
+        }).toString();
+      }
       return { success: true, output, taskId: task.id };
     } catch (err) {
       return {
