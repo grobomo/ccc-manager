@@ -28,6 +28,16 @@ inputs:
   # bridge:
   #   type: bridge
   #   path: /data/bridge/tasks
+  #   completedDir: /data/bridge/completed
+  # github:
+  #   type: github
+  #   repo: owner/repo
+  #   label: self-repair
+  # webhook:
+  #   type: webhook
+  #   port: 9090
+  #   path: /webhook
+  #   secret: hmac-shared-secret
 
 # Dispatcher analyzes issues and distributes work
 # type: shtd (structured fallback) or claude (AI-powered via claude -p)
@@ -46,16 +56,31 @@ verifiers:
   #   type: test-suite
   #   command: npm test
 
-# Workers execute tasks
+# Workers execute tasks (dispatched by dispatcher.worker config)
 workers:
   # default:
   #   type: local
   #   timeout: 120000
+  #   shell: true
   # k8s-worker:
   #   type: k8s
   #   namespace: my-namespace
   #   pod: worker-pod
   #   container: main
+  #   kubectlPath: kubectl
+  #   timeout: 120000
+  # ec2-worker:
+  #   type: ec2
+  #   method: ssh
+  #   host: 10.0.0.1
+  #   user: ec2-user
+  #   keyFile: /path/to/key.pem
+  #   timeout: 120000
+  # ec2-ssm:
+  #   type: ec2
+  #   method: ssm
+  #   instanceId: i-1234567890abcdef0
+  #   timeout: 120000
 
 # Notifiers post results to external services
 notifiers:

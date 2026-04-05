@@ -131,6 +131,10 @@
 - [x] T088: EC2Worker SSM — fix --parameters format for AWS CLI
 - [x] T089: FileNotifier — sanitize task.id in filename to prevent path traversal
 
+## Phase 25: Operational Tooling
+- [x] T090: Grafana dashboard JSON — importable model for CCC Prometheus metrics
+- [x] T091: Config schema documentation — all fields, types, defaults, examples
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
