@@ -73,6 +73,26 @@ export class Manager {
     console.log(`[manager] Initialized: ${this.monitors.length} monitors, ${this.inputs.length} inputs, ${this.verifiers.length} verifiers`);
   }
 
+  async _processTask(task) {
+    try {
+      console.log(`[dispatcher] Processing: ${task.summary || task.id}`);
+      const plan = await this.dispatcher.analyze(task);
+      const result = await this.dispatcher.dispatch(plan, this.config);
+
+      let verified = { passed: true, details: 'No verifier configured' };
+      for (const verifier of this.verifiers) {
+        verified = await verifier.verify(task, result);
+        if (!verified.passed) break;
+      }
+
+      this.state.complete(task.id, verified);
+      console.log(`[manager] Task ${task.id}: ${verified.passed ? 'FIXED' : 'FAILED'}`);
+    } catch (err) {
+      console.error(`[dispatcher] Error processing ${task.id}: ${err.message}`);
+      this.state.complete(task.id, { passed: false, details: err.message });
+    }
+  }
+
   async runCycle() {
     for (const monitor of this.monitors) {
       try {
@@ -111,23 +131,7 @@ export class Manager {
     if (this.dispatcher) {
       let task;
       while ((task = this.state.dequeue())) {
-        try {
-          console.log(`[dispatcher] Processing: ${task.summary || task.id}`);
-          const plan = await this.dispatcher.analyze(task);
-          const result = await this.dispatcher.dispatch(plan, this.config);
-
-          let verified = { passed: true, details: 'No verifier configured' };
-          for (const verifier of this.verifiers) {
-            verified = await verifier.verify(task, result);
-            if (!verified.passed) break;
-          }
-
-          this.state.complete(task.id, verified);
-          console.log(`[manager] Task ${task.id}: ${verified.passed ? 'FIXED' : 'FAILED'}`);
-        } catch (err) {
-          console.error(`[dispatcher] Error processing ${task.id}: ${err.message}`);
-          this.state.complete(task.id, { passed: false, details: err.message });
-        }
+        await this._processTask(task);
       }
     }
 
@@ -207,20 +211,9 @@ export class Manager {
     while (this.state.queue.length > 0 && this.dispatcher && Date.now() < deadline) {
       const task = this.state.dequeue();
       if (!task) break;
-      try {
-        console.log(`[manager] Draining: ${task.summary || task.id}`);
-        const plan = await this.dispatcher.analyze(task);
-        const result = await this.dispatcher.dispatch(plan, this.config);
-        let verified = { passed: true, details: 'No verifier configured' };
-        for (const verifier of this.verifiers) {
-          verified = await verifier.verify(task, result);
-          if (!verified.passed) break;
-        }
-        this.state.complete(task.id, verified);
-        drained++;
-      } catch (err) {
-        this.state.complete(task.id, { passed: false, details: `Shutdown drain error: ${err.message}` });
-      }
+      console.log(`[manager] Draining: ${task.summary || task.id}`);
+      await this._processTask(task);
+      drained++;
     }
 
     // Re-queue anything we couldn't drain in time
@@ -249,8 +242,9 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
     process.exit(1);
   }
   const manager = new Manager(resolve(configPath));
-  process.on('SIGINT', () => manager.stop());
-  process.on('SIGTERM', () => manager.stop());
+  const shutdown = () => manager.stop().then(() => process.exit(0));
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
   manager.start().catch(err => {
     console.error(`[manager] Fatal: ${err.message}`);
     process.exit(1);
