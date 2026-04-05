@@ -2,8 +2,9 @@
 // Calls Claude CLI to analyze issues and produce structured repair plans.
 // Falls back to SHTDDispatcher-style plan if Claude is unavailable.
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { Dispatcher } from '../base.js';
+import { createLogger } from '../logger.js';
 
 export class ClaudeDispatcher extends Dispatcher {
   constructor(config) {
@@ -13,6 +14,7 @@ export class ClaudeDispatcher extends Dispatcher {
     this.timeout = config.timeout || 60000;
     this.claudePath = config.claudePath || 'claude';
     this.maxPromptLen = config.maxPromptLen || 4000;
+    this.log = createLogger('claude-dispatcher');
   }
 
   _buildPrompt(issue) {
@@ -81,23 +83,22 @@ export class ClaudeDispatcher extends Dispatcher {
 
     let aiPlan = null;
     try {
-      const args = [this.claudePath, '-p', JSON.stringify(prompt), '--output-format', 'text'];
-      if (this.model) args.splice(1, 0, '--model', this.model);
+      const args = ['-p', prompt, '--output-format', 'text'];
+      if (this.model) args.unshift('--model', this.model);
 
-      const raw = execSync(args.join(' '), {
+      const raw = execFileSync(this.claudePath, args, {
         stdio: 'pipe',
         timeout: this.timeout,
         cwd: this.projectDir,
-        shell: true,
         env: { ...process.env, CLAUDE_CODE_ENTRYPOINT: 'ccc-manager' }
       }).toString();
 
       aiPlan = this._parseResponse(raw);
       if (aiPlan) {
-        console.log(`[claude-dispatcher] AI generated ${aiPlan.tasks.length} task(s) for: ${issue.summary}`);
+        this.log.info('AI plan generated', { tasks: aiPlan.tasks.length, summary: issue.summary });
       }
     } catch (err) {
-      console.warn(`[claude-dispatcher] Claude unavailable (${err.message}), using fallback`);
+      this.log.warn('Claude unavailable, using fallback', { error: err.message });
     }
 
     // Build task list — from AI or fallback

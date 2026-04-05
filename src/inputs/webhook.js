@@ -5,6 +5,7 @@
 import { createServer } from 'node:http';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Input } from '../base.js';
+import { createLogger } from '../logger.js';
 
 const MAX_BODY_BYTES = 1024 * 1024; // 1 MB
 
@@ -16,6 +17,7 @@ export class WebhookInput extends Input {
     this.secret = config.secret || null;
     this.server = null;
     this._queue = [];
+    this.log = createLogger(`webhook:${name}`);
   }
 
   async poll() {
@@ -75,7 +77,7 @@ export class WebhookInput extends Input {
 
     await new Promise(resolve => {
       this.server.listen(this.port, () => {
-        console.log(`[webhook:${this.name}] Listening on :${this.port}${this.path}`);
+        this.log.info('Listening', { port: this.port, path: this.path });
         resolve();
       });
     });
