@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.23.0 (2026-04-05)
+- Worker task claims: file-based claim/release/isClaimed with automatic expiry
+- Multi-worker coordination: dequeue() skips tasks claimed by other workers
+- Manager wires workerId + claimTimeout config, releases claims on completion
+- 17 new claim tests (claim, release, expiry, concurrent dequeue, sanitization)
+- 22 test suites, 607 tests total
+
 ## v1.21.0 (2026-04-05)
 - Config env var interpolation: `${VAR}` and `${VAR:-default}` syntax in YAML values
 - Secrets from environment instead of plaintext in config files (K8s/Docker pattern)

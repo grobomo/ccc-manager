@@ -44,10 +44,13 @@ export class Manager {
     this.instanceName = this.config.name;
     this.log = createLogger(this.instanceName || 'manager', { json: this.config.logFormat === 'json' });
     this._skipHealth = options.skipHealth || false;
+    this.workerId = this.config.workerId || options.workerId || null;
     const stateDir = options.stateDir || resolve(ROOT, 'state', this.instanceName || '');
     this.state = new State(stateDir, {
       dedupWindow: this.config.dedupWindow,
       maxHistory: this.config.maxHistory,
+      claimTimeout: this.config.claimTimeout,
+      workerId: this.workerId,
     });
     this.registry = new Registry();
     this.monitors = [];
@@ -142,6 +145,7 @@ export class Manager {
       }
 
       this.state.complete(task.id, verified);
+      this.state.release(task.id);
       this.log.info(`Task ${verified.passed ? 'FIXED' : 'FAILED'}`, { taskId: task.id, passed: verified.passed });
       await this._notify(task, verified);
     } catch (err) {
@@ -150,11 +154,12 @@ export class Manager {
         this.log.error('Task error, retrying', { taskId: task.id, error: err.message, retry: `${task._retries}/${maxRetries}` });
         task.status = 'queued';
         this.state._save('queue.json', this.state.queue);
-        return;
+        return; // Keep claim — same worker will retry
       }
       this.log.error('Task error', { taskId: task.id, error: err.message });
       const failResult = { passed: false, details: err.message };
       this.state.complete(task.id, failResult);
+      this.state.release(task.id);
       await this._notify(task, failResult);
     }
   }
