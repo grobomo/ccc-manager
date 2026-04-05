@@ -14,6 +14,16 @@
 - Real integration with rone-teams-poller: deploy to K8s with Helm, test with actual RONE bridge files
 - Cross-project: rone-teams-poller has SELF_REPAIR routing to this manager's bridge + GitHub issues input
 
+## Needed by ep-incident-response (cross-project blocker)
+EP incident response project needs a reusable dispatcher/distribution framework for parallel V1 analysis.
+Currently blocked because distribution logic doesn't exist as a pluggable component.
+
+- [ ] T143 Create a reusable task sharding strategy: given a high-level task + worker count, produce discrete work units. EP needs: "analyze incident" → N units split by (time range × data source × analysis type)
+- [ ] T144 Add priority-aware dispatch: critical/high/normal/low priority levels, critical tasks scheduled first
+- [ ] T145 Add SQS-backed dispatcher mode: EC2Worker already exists, but need dispatcher that queues to SQS instead of running locally. EP fleet uses SQS for task/result queues.
+- [ ] T146 Add result aggregation: collect results from N workers, merge into unified report. EP needs hierarchical aggregation (workers → T3 managers → dispatcher → final report)
+- [ ] T147 Package as standalone dispatcher-api.py that ep-incident-response can download from S3 and run on the dispatcher EC2 instance
+
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
 - Phase 2: Input sources (BridgeInput, AlertInput, ProcessMonitor)
