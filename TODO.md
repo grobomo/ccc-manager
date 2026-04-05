@@ -256,9 +256,15 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T162: Version bump to v1.19.0, update CHANGELOG
 
 ## Phase 48: Env Var Config Interpolation (spec 015)
-- [ ] T167: Add interpolateEnv() to config.js — resolve ${VAR} and ${VAR:-default} in all string values
-- [ ] T168: Tests for env var interpolation (basic, default, nested objects, unset var, non-string passthrough)
-- [ ] T169: Version bump to v1.21.0, CHANGELOG update
+- [x] T167: Add interpolateEnv() to config.js — resolve ${VAR} and ${VAR:-default} in all string values
+- [x] T168: Tests for env var interpolation (basic, default, nested objects, unset var, non-string passthrough)
+- [x] T169: Version bump to v1.21.0, CHANGELOG update
+
+## Phase 49: Worker Task Claims (spec 016)
+- [x] T170: State.claim/release/isClaimed — file-based task claims with expiry
+- [x] T171: Manager uses workerId + claims in dequeue/_processTask
+- [x] T172: Tests for claim/release/expiry/concurrent dequeue (17 tests)
+- [x] T173: Version bump to v1.23.0, CHANGELOG update
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
