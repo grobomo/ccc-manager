@@ -1,0 +1,14 @@
+apiVersion: v2
+name: ccc-manager
+description: Universal fleet manager for Continuous Claude Code deployments
+type: application
+version: 0.1.0
+appVersion: "1.13.0"
+keywords:
+  - ccc
+  - fleet-manager
+  - self-healing
+  - monitoring
+home: https://github.com/grobomo/ccc-manager
+sources:
+  - https://github.com/grobomo/ccc-manager

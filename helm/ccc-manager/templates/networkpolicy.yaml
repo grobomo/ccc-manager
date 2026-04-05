@@ -1,0 +1,39 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ccc-manager.fullname" . }}
+  labels:
+    {{- include "ccc-manager.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ccc-manager.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow Prometheus scraping and health probes
+    - ports:
+        - port: {{ .Values.healthPort }}
+          protocol: TCP
+  egress:
+    # DNS resolution
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # HTTPS (GitHub API, webhook notifiers, Claude API)
+    - ports:
+        - port: 443
+          protocol: TCP
+    # HTTP (webhook notifiers on non-TLS endpoints)
+    - ports:
+        - port: 80
+          protocol: TCP
+    # K8s API (kubectl exec for K8sWorker)
+    - ports:
+        - port: 6443
+          protocol: TCP
+{{- end }}

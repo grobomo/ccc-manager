@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ccc-manager.fullname" . }}
+  labels:
+    {{- include "ccc-manager.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ccc-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ccc-manager.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.healthPort | quote }}
+        prometheus.io/path: "/metrics"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ include "ccc-manager.imageTag" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["config/project.yaml"]
+          ports:
+            - name: health
+              containerPort: {{ .Values.healthPort }}
+              protocol: TCP
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /app/config/project.yaml
+              subPath: project.yaml
+              readOnly: true
+            {{- if .Values.bridge.enabled }}
+            - name: bridge
+              mountPath: /app/bridge
+            {{- end }}
+            - name: state
+              mountPath: /app/state
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "ccc-manager.fullname" . }}-config
+        {{- if .Values.bridge.enabled }}
+        - name: bridge
+          {{- if .Values.bridge.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.bridge.existingClaim }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+        - name: state
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "ccc-manager.fullname" . }}-state
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,90 @@
+# CCC Manager Helm values
+
+replicaCount: 1
+
+image:
+  repository: ccc-manager
+  tag: ""  # Defaults to Chart.appVersion
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Health/metrics port
+healthPort: 8080
+
+# Resource limits
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Persistent state volume
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClassName: ""  # Use cluster default
+  accessMode: ReadWriteOnce
+
+# Bridge volume (shared with target project pods)
+bridge:
+  enabled: true
+  # Use emptyDir by default; override with existingClaim for shared PVC
+  existingClaim: ""
+
+# Network policy
+networkPolicy:
+  enabled: true
+
+# Prometheus ServiceMonitor (requires Prometheus Operator)
+serviceMonitor:
+  enabled: false
+  interval: 30s
+
+# Project config (inline YAML, mounted as ConfigMap)
+projectConfig: |
+  name: my-project
+  interval: 60000
+  healthPort: 8080
+
+  monitors:
+    health:
+      type: process
+      command: "curl -sf http://localhost:3000/healthz"
+
+  inputs:
+    bridge:
+      type: bridge
+      path: /app/bridge/pending
+      completedDir: /app/bridge/done
+
+  dispatcher:
+    type: shtd
+
+  verifiers:
+    smoke:
+      type: test-suite
+      command: "curl -sf http://localhost:3000/readyz"
+
+# Pod security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Node selector, tolerations, affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
