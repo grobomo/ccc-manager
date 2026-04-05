@@ -1,18 +1,16 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 3)
+## Session Handoff (2026-04-05, session 5)
 
 **What was done this session:**
-- T040: YAML parser hardened — quoted strings, object lists, 31 tests
-- T041: Graceful shutdown — drains queue on SIGTERM with timeout
-- T042: Wired rone-teams-poller bridge — completedDir, format normalization
-- T043: Health endpoint — /healthz, /readyz, /metrics for K8s probes
-- T044: Package.json v1.0.0 — exports, bin, files, keywords, MIT
-- T045: Demo script — `npm run demo` for live cycle demonstration
-- Fix: State.metrics.failures was undefined
-- 160 tests across 8 suites, 0 failures, 13 PRs merged
+- T051: Published to emu marketplace (PR #76)
+- T052: Wired SHTDDispatcher to use workers for task execution
+- T053: WebhookInput — HTTP POST endpoint with HMAC auth for CI/CD triggers
+- T054: WebhookNotifier — posts results to Teams/Slack/JSON webhooks
+- T055: Retry logic — failed tasks retry N times before permanent failure
+- 203 tests across 9 suites, 0 failures, 4 PRs merged to main
 
-**Current state:** On main branch, all Phase 9 tasks complete. v1.0.0 ready.
+**Current state:** On main branch, all Phase 11 tasks complete. 14 components, 203 tests.
 
 ## Completed Phases (1-8)
 - Phase 1: Core framework (base classes, config, registry, state, runtime)
@@ -55,7 +53,7 @@
 - [x] T050: Registry.registerWorker + getWorker support
 
 ## Phase 11: Next Value
-- [ ] T051: Publish to emu marketplace (share with team)
+- [x] T051: Publish to emu marketplace (PR #76 at trend-ai-taskforce/ai-skill-marketplace)
 - [x] T052: Wire SHTDDispatcher to actually use workers for task execution
 - [x] T053: Add webhook input (HTTP POST → task queue) for external CI/CD triggers
 - [x] T054: Notification output — post results to Teams/Slack via webhook
