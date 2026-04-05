@@ -42,7 +42,8 @@
 - [x] T042: Wire rone-teams-poller SELF_REPAIR → bridge with completedDir + format normalization
 - [x] T043: Health endpoint — /healthz, /readyz, /metrics for K8s probes
 - [ ] T044: Publish as npm package or emu marketplace plugin
-- [ ] T045: Demo: run manager against a real config, show monitor→dispatch→verify cycle
+- [x] T045: Demo script (`npm run demo`) — live monitor→dispatch→verify cycle with health endpoint
+- [x] Fix: State tracks failures metric (was undefined)
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
