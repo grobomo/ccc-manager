@@ -1,16 +1,17 @@
 # CCC Manager — TODO
 
-## Session Handoff (2026-04-05, session 11)
+## Session Handoff (2026-04-05, session 12)
 
 **What was done this session:**
-- T080: Config hot-reload — fs.watch, debounced, swaps interval/maxRetries/dedupWindow/maxHistory (PR #34)
-- T081: File notifier wired into rone-teams-poller.yaml for bridge result consumption (PR #34)
-- T082: Prometheus /metrics text exposition format, JSON via Accept header (PR #34)
-- T083: Structured logger in all components (no more console.log in src/) (PR #35)
-- T084: ClaudeDispatcher shell injection fix — execFileSync with array args (PR #35)
-- 327 tests across 15 suites, 0 failures, 36 PRs merged
+- T087: EC2Worker + K8sWorker — execFileSync with array args (no local shell) (PR #37)
+- T088: EC2Worker SSM — correct JSON --parameters format for AWS CLI (PR #37)
+- T089: FileNotifier — sanitize task.id to prevent path traversal (PR #37)
+- T090: Grafana dashboard JSON — 10 panels for all Prometheus metrics (PR #38)
+- T091: Config docs — all component configs in example.yaml (PR #38)
+- T092: Version bump to v1.6.0 (PR #39)
+- Full code review of all 23 source files — no remaining issues
 
-**Current state:** v1.5.0 on main. 17 components, 343 tests across 15 suites, 38 PRs merged.
+**Current state:** v1.6.0 on main. 17 components, 343 tests across 15 suites, 40 PRs merged.
 **Marketplace PR:** https://github.com/trend-ai-taskforce/ai-skill-marketplace/pull/76 (open, Copilot comments addressed)
 
 **Next priorities (zoom out):**
@@ -134,6 +135,9 @@
 ## Phase 25: Operational Tooling
 - [x] T090: Grafana dashboard JSON — importable model for CCC Prometheus metrics
 - [x] T091: Config schema documentation — all fields, types, defaults, examples
+
+## Phase 26: Packaging
+- [x] T092: Version bump to v1.6.0, include Grafana dashboard in package files
 
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
