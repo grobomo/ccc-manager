@@ -20,7 +20,9 @@ let suitesRun = 0;
 let suitesFailed = 0;
 
 for (const suite of suites) {
+  const suiteName = suite.replace(/^test-/, '').replace(/\.js$/, '');
   const suitePath = resolve(testDir, suite);
+  console.log(`--- ${suiteName} ---`);
   try {
     const output = execSync(`node "${suitePath}"`, { stdio: 'pipe', timeout: 30000 }).toString();
     process.stdout.write(output);

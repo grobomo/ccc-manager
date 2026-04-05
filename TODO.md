@@ -182,6 +182,11 @@
 - [x] T116: Apply libuv drain fix to all 11 remaining test files
 - [x] T117: Version bump to v1.9.0, GitHub release
 
+## Phase 36: Packaging & Adoption
+- [x] T118: Add healthcheck and validate scripts to package.json + files array
+- [x] T119: Test runner — show suite names in output for debugging
+- [x] T120: CHANGELOG.md — summarize all phases for consumers
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
