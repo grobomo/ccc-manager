@@ -161,6 +161,10 @@
 ## Phase 31: Container Security
 - [x] T106: Dockerfile non-root user + K8s securityContext (runAsNonRoot, readOnlyRootFilesystem)
 
+## Phase 32: Operational Tooling
+- [x] T107: Healthcheck script — standalone ops tool to probe running manager (healthz/readyz/metrics)
+- [ ] T108: PersistentVolumeClaim for state — survive pod restarts, optional emptyDir fallback
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks
