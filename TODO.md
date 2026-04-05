@@ -251,6 +251,15 @@ Currently blocked because distribution logic doesn't exist as a pluggable compon
 - [x] T159: Logger JSON mode — filter undefined values from data before spread
 - [x] T160: Version bump to v1.18.0, CHANGELOG update
 
+## Phase 47: Docs Polish
+- [x] T161: README — update component count (17→20), test count (476→581), add missing components
+- [x] T162: Version bump to v1.19.0, update CHANGELOG
+
+## Phase 48: Env Var Config Interpolation (spec 015)
+- [ ] T167: Add interpolateEnv() to config.js — resolve ${VAR} and ${VAR:-default} in all string values
+- [ ] T168: Tests for env var interpolation (basic, default, nested objects, unset var, non-string passthrough)
+- [ ] T169: Version bump to v1.21.0, CHANGELOG update
+
 ## Related Projects
 - `rone-teams-poller` — chat adapter, routes SELF_REPAIR to this manager
 - `claude-portable` — worker image, executes individual tasks

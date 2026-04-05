@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.21.0 (2026-04-05)
+- Config env var interpolation: `${VAR}` and `${VAR:-default}` syntax in YAML values
+- Secrets from environment instead of plaintext in config files (K8s/Docker pattern)
+- 9 new tests for interpolation (nested, arrays, defaults, passthrough)
+- 21 test suites, 590 tests total
+
 ## v1.19.0 (2026-04-05)
 - README: update component table (17→20), test counts (476→581), add parallelDispatch + aggregateResults
 - Helm version reference updated to v1.18.0
