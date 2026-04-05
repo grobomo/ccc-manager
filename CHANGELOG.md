@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.18.0 (2026-04-05)
+- Tests: direct unit tests for exec-helper.js (18 tests — success, failure, stderr, truncation, boundary)
+- 21 test suites, 574 tests total
+
 ## v1.17.0 (2026-04-05)
 - Code review: logger filters undefined values from text output (no more `key=undefined`)
 - Code review: SQSInput.listen() try/catch prevents silent poll loop death on callback error
