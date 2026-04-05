@@ -19,9 +19,9 @@ function assert(condition, msg) {
   else { failed++; console.error(`  FAIL: ${msg}`); }
 }
 
-function httpGet(port, path) {
+function httpGet(port, path, headers = {}) {
   return new Promise((resolve, reject) => {
-    http.get(`http://127.0.0.1:${port}${path}`, (res) => {
+    http.get(`http://127.0.0.1:${port}${path}`, { headers }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve({ status: res.statusCode, body: data }));
@@ -71,10 +71,15 @@ dispatcher:
   const readyBody = JSON.parse(readiness.body);
   assert(readyBody.status === 'ready', `Readiness status: ${readyBody.status}`);
 
-  const metrics = await httpGet(healthPort, '/metrics');
+  const metrics = await httpGet(healthPort, '/metrics', { Accept: 'application/json' });
   assert(metrics.status === 200, `GET /metrics → ${metrics.status}`);
   const metricsBody = JSON.parse(metrics.body);
   assert(typeof metricsBody.cycles === 'number', `Metrics has cycles: ${metricsBody.cycles}`);
+
+  // Verify Prometheus text format (default)
+  const promMetrics = await httpGet(healthPort, '/metrics');
+  assert(promMetrics.status === 200, `GET /metrics (Prometheus) → ${promMetrics.status}`);
+  assert(promMetrics.body.includes('ccc_cycles_total'), 'Prometheus format has ccc_cycles_total');
 
   const notfound = await httpGet(healthPort, '/unknown');
   assert(notfound.status === 404, `GET /unknown → ${notfound.status}`);

@@ -91,3 +91,7 @@ notifiers:
 # Log format: text (default, human-readable) or json (structured, for production)
 # Also configurable via CCC_LOG_FORMAT=json env var
 # logFormat: text
+
+# Hot-reload: interval, maxRetries, dedupWindow, maxHistory, drainTimeout
+# are reloaded automatically when the config file changes on disk.
+# Structural changes (monitors, inputs, workers) require restart.
